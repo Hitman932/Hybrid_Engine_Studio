@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c0f17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>HybridEngine Studio Pro — 2D Lua Game Engine</title>
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'&gt;&lt;rect width='64' height='64' rx='14' fill='%233b82f6'/&gt;&lt;text x='32' y='44' font-size='34' font-family='system-ui' font-weight='900' fill='white' text-anchor='middle'&gt;H&lt;/text&gt;&lt;/svg&gt;">
+<script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+  html,body{width:100%;height:100%;background:#080a0e;color:#f8fafc;overflow:hidden;user-select:none}
+  body{display:flex;flex-direction:column}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:#0a0d14}
+  ::-webkit-scrollbar-thumb{background:#263044;border-radius:3px}
+
+  .btn{padding:6px 11px;border-radius:6px;border:1px solid #263044;background:#131824;color:#e2e8f0;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:.1s}
+  .btn:hover{border-color:#3b82f6;background:#1c2436}
+  .btn.on{background:rgba(59,130,246,.22);border-color:#3b82f6;color:#60a5fa}
+  .blue{background:#3b82f6;border-color:#3b82f6;color:#fff}
+  .blue:hover{background:#2563eb}
+  .green{background:#10b981;border-color:#10b981;color:#052e16;font-weight:700}
+  .green:hover{background:#059669;color:#fff}
+  .red{background:#ef4444;border-color:#ef4444;color:#fff}
+  .red:hover{background:#dc2626}
+  .purple{background:#8b5cf6;border-color:#8b5cf6;color:#fff}
+  .purple:hover{background:#7c3aed}
+  input,select{background:#131824;border:1px solid #263044;color:#f8fafc;padding:6px 9px;border-radius:5px;font-size:12px;outline:none}
+  input:focus,select:focus{border-color:#3b82f6}
+
+  /* Main Menu Hub */
+  #hub{display:flex;flex-direction:column;height:100%}
+  .banner{height:70px;background:linear-gradient(90deg,#0d111a,#151d2e,#0d111a);border-bottom:1px solid #1e2636;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+  .title{font-size:25px;font-weight:800}.title span{color:#60a5fa}
+  .hub-main{flex:1;display:flex;overflow:hidden}
+  .hub-side{width:260px;background:#0c0f17;border-right:1px solid #1e2636;padding:20px 14px;display:flex;flex-direction:column;gap:8px}
+  .hnav{padding:14px;border-radius:8px;color:#94a3b8;cursor:pointer;font-weight:600}
+  .hnav.on,.hnav:hover{background:rgba(59,130,246,.15);color:#60a5fa}
+  .hub-body{flex:1;padding:28px;overflow-y:auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;margin-top:18px}
+  .card{background:#111622;border:1px solid #1e2636;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:.12s}
+  .card:hover{border-color:#3b82f6}
+  .card-actions{display:flex;gap:8px;margin-top:4px}
+
+  /* Editor Shell */
+  #ed{display:none;flex-direction:column;height:100%}
+  .top{height:48px;background:#0c0f17;border-bottom:1px solid #1e2636;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .work{flex:1;display:flex;overflow:hidden}
+  .left{width:245px;background:#0c0f17;border-right:1px solid #1e2636;display:flex;flex-direction:column}
+  .right{width:280px;background:#0c0f17;border-left:1px solid #1e2636;padding:12px;overflow-y:auto}
+  .phead{height:32px;padding:0 10px;border-bottom:1px solid #1e2636;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px}
+  .addg{padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;border-bottom:1px solid #1e2636}
+  .titem{padding:7px 10px;font-size:12.5px;color:#cbd5e1;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .titem:hover{background:#131824}
+  .titem.sel{background:rgba(59,130,246,.22);color:#60a5fa;font-weight:600}
+  .badge{font-size:9px;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700}
+  .lua-badge{background:rgba(59,130,246,.25);color:#93c5fd}
+  .grav-badge{background:rgba(16,185,129,.22);color:#6ee7b7}
+
+  .mid{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .vwrap{flex:1;position:relative;background:#07090d}
+  #vp{width:100%;height:100%;display:block;outline:none}
+  .hud{position:absolute;top:8px;left:8px;background:rgba(12,15,23,.92);border:1px solid #1e2636;padding:5px 10px;border-radius:5px;font-size:11px;color:#94a3b8;pointer-events:none}
+  .vtools{position:absolute;top:8px;right:8px;display:flex;gap:5px}
+
+  /* Bottom Drawer */
+  .drawer{height:185px;background:#0c0f17;border-top:1px solid #1e2636;display:flex;flex-direction:column}
+  .dtabs{height:34px;border-bottom:1px solid #1e2636;padding:0 12px;display:flex;align-items:center;justify-content:space-between}
+  .dtab-list{display:flex;gap:14px}
+  .dtab{font-size:12px;font-weight:600;color:#64748b;cursor:pointer;padding:7px 0;border-bottom:2px solid transparent}
+  .dtab.on{color:#60a5fa;border-bottom-color:#3b82f6}
+  .dbody{flex:1;padding:10px;overflow-y:auto}
+  .agrid{display:flex;gap:10px;flex-wrap:wrap}
+  .acard{position:relative;width:92px;background:#131824;border:1px solid #263044;border-radius:7px;padding:6px;text-align:center;cursor:pointer}
+  .acard:hover{border-color:#3b82f6}
+  .acard img{width:44px;height:44px;image-rendering:pixelated;object-fit:contain;background:#080a0e;display:block;margin:0 auto 4px}
+  .adel{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:4px;border:1px solid #7f1d1d;background:#ef4444;color:#fff;font-size:10px;font-weight:800;line-height:1;cursor:pointer;display:grid;place-items:center;opacity:.88}
+  .adel:hover{opacity:1;transform:scale(1.08)}
+  .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:12px;color:#94a3b8}
+  .row input,.row select{width:136px}
+  .sec{border-top:1px solid #1e2636;padding-top:10px;margin-top:10px}
+
+  /* Modals */
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99;align-items:center;justify-content:center}
+  .modal.open{display:flex}
+  .npwin{width:480px;max-width:92vw;background:#0c0f17;border:1px solid #2a354d;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+  .npbody{padding:18px;display:flex;flex-direction:column;gap:12px}
+  .tpl-opt{background:#131824;border:1px solid #263044;border-radius:8px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+  .tpl-opt.on{border-color:#3b82f6;background:rgba(59,130,246,.14)}
+
+  .pxwin{width:880px;max-width:95vw;height:550px;background:#0c0f17;border:1px solid #2a354d;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+  .pxtop{height:44px;background:#111622;border-bottom:1px solid #1e2636;padding:0 14px;display:flex;align-items:center;justify-content:space-between}
+  .pxmid{flex:1;display:flex;overflow:hidden}
+  .pxtools{width:195px;border-right:1px solid #1e2636;padding:10px;display:flex;flex-direction:column;gap:7px;overflow-y:auto}
+  .pxarea{flex:1;display:grid;place-items:center;background:#07090d}
+  #pxc{background:#131824;border:2px solid #2a354d;cursor:crosshair;image-rendering:pixelated}
+  .pxprev{width:195px;border-left:1px solid #1e2636;padding:10px;display:flex;flex-direction:column;gap:8px}
+  #animc{width:112px;height:112px;margin:0 auto;background:#07090d;border:1px solid #263044;image-rendering:pixelated}
+  .pxtime{height:96px;background:#0a0d14;border-top:1px solid #1e2636;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+  .fstrip{display:flex;gap:8px;overflow-x:auto}
+  .fbox{width:48px;height:48px;border:2px solid #263044;border-radius:5px;cursor:pointer;display:grid;place-items:center;background:#131824;flex-shrink:0}
+  .fbox.on{border-color:#3b82f6}
+  .fbox canvas{width:40px;height:40px;image-rendering:pixelated}
+
+  /* Lua Script Editor Window */
+  .scwin{width:840px;max-width:95vw;height:540px;background:#0c0f17;border:1px solid #2a354d;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+  .scbody{flex:1;display:flex;overflow:hidden}
+  .scside{width:230px;border-right:1px solid #1e2636;padding:10px;display:flex;flex-direction:column;gap:6px;background:#0a0d14;overflow-y:auto}
+  #sccode{flex:1;background:#07090d;color:#e2e8f0;border:none;padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.55;resize:none;outline:none;user-select:text}
+  .scerr{padding:8px 14px;background:#1e1014;color:#f87171;font-family:monospace;font-size:11.5px;border-top:1px solid #3f1d24;display:none}
+</style>
+</head>
+<body>
+
+<!-- 1. MAIN MENU HUB -->
+<div id="hub">
+  <div class="banner">
+    <div class="title">Hybrid<span>Engine</span> <small style="font-size:12px;color:#64748b">PRO 2D LUA GAME STUDIO</small></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="vm-status" style="color:#10b981;font-size:13px;font-weight:600">● Full 2D Lua VM + Gravity Physics Ready</span>
+      <button class="btn green" onclick="downloadStudioApp()">⬇ Download App (.html)</button>
+      <button class="btn blue" onclick="openInstallHelp()">🖥 Install as Windowed App</button>
+    </div>
+  </div>
+  <div class="hub-main">
+    <div class="hub-side">
+      <div class="hnav on">My Projects</div>
+      <div class="hnav" onclick="openNewProjModal('platformer')">+ Pro 2D Platformer</div>
+      <div class="hnav" onclick="openNewProjModal('topdown')">+ Top-Down Action RPG</div>
+      <div class="hnav" onclick="openNewProjModal('blank')">+ Blank 2D Project</div>
+      <div style="margin-top:auto;padding:10px;background:#111622;border:1px solid #1e2636;border-radius:8px;font-size:11px;color:#94a3b8;line-height:1.45">
+        <strong style="color:#60a5fa">Pro 2D Engine Features</strong><br>
+        • Gravity-aware Enemy AI &amp; Patrols<br>
+        • One-Way Platforms &amp; Coyote Jump<br>
+        • Particle FX, Screen Shake &amp; Follow Cam<br>
+        • Sprite Flip-X &amp; Full Asset Persistence
+      </div>
+    </div>
+    <div class="hub-body">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Projects</h2>
+        <button class="btn blue" onclick="openNewProjModal('platformer')">+ New 2D Lua Project</button>
+      </div>
+      <div class="grid" id="pgrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL APP HELP MODAL -->
+<div class="modal" id="instmod">
+  <div class="npwin">
+    <div class="pxtop">
+      <strong style="color:#60a5fa">Install HybridEngine Studio as an App</strong>
+      <button class="btn red" onclick="document.getElementById('instmod').classList.remove('open')">✕</button>
+    </div>
+    <div class="npbody" style="font-size:13px;color:#cbd5e1;line-height:1.6">
+      <p><strong>Step 1:</strong> Click <strong>⬇ Download App (.html)</strong> to save <code>HybridEngine_Studio_Pro2D.html</code> to your computer.</p>
+      <p><strong>Step 2:</strong> Open the downloaded file in Chrome, click the <strong>⋮ menu</strong> (top right) → <strong>Cast, save, and share</strong> → <strong>Create shortcut...</strong></p>
+      <p><strong>Step 3:</strong> Check <strong>"Open as window"</strong> and click <strong>Create</strong>. HybridEngine Studio will now launch in its own standalone window!</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
+        <button class="btn green" onclick="downloadStudioApp()">⬇ Download App Now</button>
+        <button class="btn" onclick="document.getElementById('instmod').classList.remove('open')">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PROJECT CREATOR MODAL -->
+<div class="modal" id="npmod">
+  <div class="npwin">
+    <div class="pxtop">
+      <strong style="color:#60a5fa">Create New 2D Lua Project</strong>
+      <button class="btn red" onclick="closeNewProjModal()">✕</button>
+    </div>
+    <div class="npbody">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:12px;color:#94a3b8;font-weight:600">Project Name</label>
+        <input type="text" id="np-name" placeholder="My 2D Lua Game" style="width:100%;font-size:13px;padding:8px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <label style="font-size:12px;color:#94a3b8;font-weight:600">Starting Template</label>
+        <div class="tpl-opt on" id="tpl-platformer" onclick="pickTpl('platformer')">
+          <strong style="font-size:13px">🏃 Pro 2D Side-Scroller Platformer</strong>
+          <span style="font-size:11.5px;color:#94a3b8">Coyote-time jump, double-jump, stomp/shoot combat, gravity-driven enemies that jump obstacles, one-way platforms, and particle bursts.</span>
+        </div>
+        <div class="tpl-opt" id="tpl-topdown" onclick="pickTpl('topdown')">
+          <strong style="font-size:13px">🧭 Top-Down Action RPG / Twin-Stick</strong>
+          <span style="font-size:11.5px;color:#94a3b8">8-way WASD movement, Spacebar Dash with particle trail, Click-to-shoot aimed bolts, solid walls, and chaser enemies.</span>
+        </div>
+        <div class="tpl-opt" id="tpl-blank" onclick="pickTpl('blank')">
+          <strong style="font-size:13px">📄 Blank 2D Project</strong>
+          <span style="font-size:11.5px;color:#94a3b8">Clean starter floor &amp; hero ready for custom objects, ZIP sprite/tileset packs, and Lua scripts.</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn" onclick="closeNewProjModal()">Cancel</button>
+        <button class="btn green" onclick="confirmCreateProject()">Create &amp; Open Project →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. 2D GAME EDITOR -->
+<div id="ed">
+  <div class="top">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn" onclick="toHub()">← Main Menu</button>
+      <strong>Hybrid<span style="color:#60a5fa">Engine</span></strong>
+      <span id="ed-proj-title" style="font-size:12px;color:#93c5fd;background:#131824;padding:4px 8px;border-radius:5px;border:1px solid #263044">Project</span>
+      <select id="scene-sel" onchange="switchScene(this.value)"></select>
+      <button class="btn" onclick="newScene()">+ Scene</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn green" id="pbtn" onclick="togglePlay()">▶ Play</button>
+      <button class="btn on" id="sbtn" onclick="snap=!snap;this.textContent='⊞ Snap: '+(snap?'ON':'OFF');this.classList.toggle('on')">⊞ Snap: ON</button>
+      <button class="btn" onclick="duplicateSelected()" title="Ctrl+D">❐ Duplicate</button>
+      <button class="btn blue" onclick="openPx()">🎨 Pixel &amp; Animator</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn" onclick="saveStorage();logOut('[App] Project & assets saved!')">💾 Save</button>
+      <button class="btn purple" onclick="exportStandaloneGame()">⚡ Export Game (.html)</button>
+    </div>
+  </div>
+
+  <div class="work">
+    <!-- Left: Hierarchy -->
+    <div class="left">
+      <div class="phead"><span>Scene Hierarchy</span><span id="node-count">0</span></div>
+      <div class="addg">
+        <button class="btn" onclick="addNode('Player')">+ Player</button>
+        <button class="btn" onclick="addNode('Enemy')">+ Enemy</button>
+        <button class="btn" onclick="addNode('Platform')">+ Platform</button>
+        <button class="btn" onclick="addNode('OneWay')">+ 1-Way Ledge</button>
+        <button class="btn" onclick="addNode('Wall')">+ Wall</button>
+        <button class="btn" onclick="addNode('Coin')">+ Coin</button>
+        <button class="btn" onclick="addNode('Spike')">+ Hazard</button>
+        <button class="btn" onclick="addNode('Text')">+ HUD Text</button>
+      </div>
+      <div id="tree" style="overflow-y:auto;flex:1"></div>
+    </div>
+
+    <!-- Center: Viewport + Bottom Drawer -->
+    <div class="mid">
+      <div class="vwrap" id="vwrap">
+        <canvas id="vp" tabindex="0"></canvas>
+        <div class="hud" id="hud">Press Play • WASD Move • Space Jump/Dash • Click Shoot</div>
+        <div class="vtools">
+          <button class="btn on" id="cam-follow-btn" onclick="camFollow=!camFollow;this.classList.toggle('on',camFollow)">🎥 Follow Player</button>
+          <button class="btn" onclick="resetCam()">⌖ Reset Cam</button>
+        </div>
+      </div>
+
+      <div class="drawer">
+        <div class="dtabs">
+          <div class="dtab-list">
+            <div class="dtab on" onclick="setDTab('assets',this)">Sprites &amp; Tilesets</div>
+            <div class="dtab" onclick="setDTab('world',this)">World &amp; Physics</div>
+            <div class="dtab" onclick="setDTab('console',this)">Lua Console &amp; Output</div>
+            <div class="dtab" onclick="setDTab('api',this)">Pro 2D Lua API</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <input type="file" id="fimp" accept="image/*,.zip,application/zip" multiple="" style="display:none" onchange="impFile(event)">
+            <button class="btn" onclick="startImp('Sprite')">+ Import Sprite / ZIP</button>
+            <button class="btn" onclick="startImp('Tileset')">+ Import Tileset / ZIP</button>
+            <button class="btn blue" onclick="openPx()">+ Draw Pixel Art</button>
+          </div>
+        </div>
+        <div class="dbody" id="dbody"></div>
+      </div>
+    </div>
+
+    <!-- Right: Inspector -->
+    <div class="right">
+      <div class="phead" style="margin:-12px -12px 12px">Inspector</div>
+      <div id="insp"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. PIXEL EDITOR & ANIMATOR MODAL -->
+<div class="modal" id="pxmod">
+  <div class="pxwin">
+    <div class="pxtop">
+      <div style="display:flex;gap:8px;align-items:center">
+        <strong style="color:#60a5fa">Pixel &amp; Frame Animator</strong>
+        <select id="pxsz" onchange="initPx(Number(this.value))"><option value="16">16x16</option><option value="32">32x32</option></select>
+        <select id="pxcat"><option value="Sprite">Sprite</option><option value="Tileset">Tileset</option></select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn green" onclick="savePx()">✓ Save to Assets</button>
+        <button class="btn red" onclick="closePx()">✕</button>
+      </div>
+    </div>
+    <div class="pxmid">
+      <div class="pxtools">
+        <button class="btn on" id="tp" onclick="setTool('pen')">✎ Pencil</button>
+        <button class="btn" id="te" onclick="setTool('erase')">⌫ Eraser</button>
+        <button class="btn" id="tf" onclick="setTool('fill')">🪣 Fill</button>
+        <button class="btn" onclick="frames[fcur]=blank(gsz);drawPx();drawStrip()">Clear Frame</button>
+        <input type="color" id="pxcol" value="#3b82f6" style="width:100%;height:30px;padding:0;border:none">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px" id="pal"></div>
+        <div style="border-top:1px solid #1e2636;padding-top:8px;margin-top:4px;display:flex;flex-direction:column;gap:5px">
+          <span style="font-size:10px;font-weight:700;color:#60a5fa;text-transform:uppercase">Use Imported Asset</span>
+          <select id="px-asset-sel" style="width:100%"></select>
+          <div style="display:flex;gap:4px">
+            <button class="btn blue" style="flex:1;justify-content:center" onclick="loadImportedIntoPx()">📥 Load</button>
+            <button class="btn red" title="Delete selected asset" onclick="deleteSelectedPxAsset()">🗑</button>
+          </div>
+        </div>
+      </div>
+      <div class="pxarea"><canvas id="pxc" width="320" height="320"></canvas></div>
+      <div class="pxprev">
+        <span style="font-size:11px;color:#64748b;font-weight:700">ANIMATION PREVIEW</span>
+        <canvas id="animc" width="112" height="112"></canvas>
+        <div class="row"><span>FPS</span><input type="number" id="afps" value="6" min="1" max="24" style="width:60px"></div>
+        <div style="margin-top:auto">
+          <span style="font-size:11px;color:#94a3b8">Asset Name</span>
+          <input type="text" id="aname" value="HeroSprite" style="width:100%;margin-top:4px">
+        </div>
+      </div>
+    </div>
+    <div class="pxtime">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:#64748b;font-weight:700">FRAMES</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="addF()">+ Frame</button>
+          <button class="btn" onclick="dupF()">⧉ Duplicate</button>
+          <button class="btn red" onclick="delF()">Delete</button>
+        </div>
+      </div>
+      <div class="fstrip" id="fstrip"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. LUA SCRIPT EDITOR MODAL -->
+<div class="modal" id="scmod">
+  <div class="scwin">
+    <div class="pxtop">
+      <div style="display:flex;gap:8px;align-items:center">
+        <strong style="color:#60a5fa">Full Lua Script Editor</strong>
+        <span id="sc-target" style="font-size:12px;color:#94a3b8;background:#131824;padding:3px 8px;border-radius:4px">Object.lua</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn green" onclick="saveScript()">✓ Save Lua Script</button>
+        <button class="btn red" onclick="closeScript()">✕</button>
+      </div>
+    </div>
+    <div class="scbody">
+      <div class="scside">
+        <span style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase">Lua Snippets</span>
+        <button class="btn" onclick="snip('plat')">🏃 Pro Platformer Hero</button>
+        <button class="btn" onclick="snip('plat_enemy')">👾 Gravity Platformer Enemy</button>
+        <button class="btn" onclick="snip('topdown')">🧭 Top-Down + Dash + Shoot</button>
+        <button class="btn" onclick="snip('chaser')">🤖 Smart Hybrid Enemy AI</button>
+        <button class="btn" onclick="snip('moving_plat')">🛗 Moving Platform</button>
+        <div style="margin-top:auto;font-size:10.5px;color:#64748b;line-height:1.45">
+          <strong>Pro 2D API:</strong><br>
+          <code style="color:#93c5fd">obj.grav, obj.grounded, obj.flipX</code><br>
+          <code style="color:#93c5fd">engine.particles(x, y, col, n)</code><br>
+          <code style="color:#93c5fd">engine.shake(amount)</code><br>
+          <code style="color:#93c5fd">engine.collides(obj, "Enemy")</code><br>
+          <code style="color:#93c5fd">engine.spawn(...), destroy()</code>
+        </div>
+      </div>
+      <textarea id="sccode" spellcheck="false"></textarea>
+    </div>
+    <div class="scerr" id="scerr"></div>
+  </div>
+</div>
+
+<script>
+  /* ==================== APP DOWNLOADER & LOCAL STORAGE ==================== */
+  function openInstallHelp() {
+    document.getElementById("instmod").classList.add("open");
+  }
+
+  function downloadStudioApp() {
+    if (typeof saveStorage === "function") saveStorage();
+    const docHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    const blob = new Blob([docHtml], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "HybridEngine_Studio_Pro2D.html";
+    a.click();
+    if (typeof logOut === "function") logOut("[App] Downloaded HybridEngine_Studio_Pro2D.html!");
+  }
+
+  /* ==================== FULL LUA VM BRIDGE (FENGARI STACK API) ==================== */
+  const hasRealLua = typeof window.fengari !== 'undefined';
+
+  function formatLuaErr(e) {
+    if (!e) return "Unknown Lua Error";
+    if (typeof e === "string") return e;
+    if (e.message) return e.message;
+    try { return String(e); } catch (_) { return "Lua Runtime Error"; }
+  }
+
+  let keys = {};
+  let mouse = { x: 0, y: 0, down: false };
+  let nodes = [];
+  let scenes = {};
+  let curScene = "Level1";
+  let currentDt = 0.016;
+  let particles = [];
+  let shakeTime = 0, shakeMag = 0;
+  let worldCfg = { gravity: 1150, skyTop: "#090d16", skyBot: "#111927", showGrid: true };
+
+  function spawnParticles(x, y, color = "#fde047", count = 10) {
+    for (let i = 0; i < count; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 60 + Math.random() * 220;
+      particles.push({
+        x, y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 40,
+        size: 3 + Math.random() * 4,
+        color,
+        life: 0.25 + Math.random() * 0.25,
+        maxLife: 0.5
+      });
+    }
+  }
+
+  function triggerShake(mag = 6, dur = 0.16) {
+    shakeMag = Math.max(shakeMag, mag);
+    shakeTime = Math.max(shakeTime, dur);
+  }
+
+  if (hasRealLua) {
+    const L = window.fengari.L;
+    const lua = window.fengari.lua;
+    const to_luastring = window.fengari.to_luastring;
+    const to_jsstring = window.fengari.to_jsstring;
+
+    function regFn(name, fn) {
+      lua.lua_pushcfunction(L, fn);
+      lua.lua_setglobal(L, to_luastring(name));
+    }
+
+    regFn("__hyb_dt", function(L) { lua.lua_pushnumber(L, currentDt); return 1; });
+
+    regFn("__hyb_key", function(L) {
+      const k = to_jsstring(lua.lua_tostring(L, 1)).toLowerCase();
+      if (k === "mouse1" || k === "click") lua.lua_pushboolean(L, !!mouse.down);
+      else lua.lua_pushboolean(L, !!keys[k]);
+      return 1;
+    });
+
+    regFn("__hyb_mouse_x", function(L) { lua.lua_pushnumber(L, mouse.x); return 1; });
+    regFn("__hyb_mouse_y", function(L) { lua.lua_pushnumber(L, mouse.y); return 1; });
+
+    regFn("__hyb_print", function(L) {
+      logOut(to_jsstring(lua.lua_tostring(L, 1)));
+      return 0;
+    });
+
+    regFn("__hyb_sound", function(L) {
+      playTone(lua.lua_tonumber(L, 1) || 440, lua.lua_tonumber(L, 2) || 0.1);
+      return 0;
+    });
+
+    regFn("__hyb_particles", function(L) {
+      spawnParticles(
+        lua.lua_tonumber(L, 1) || 0,
+        lua.lua_tonumber(L, 2) || 0,
+        lua.lua_isstring(L, 3) ? to_jsstring(lua.lua_tostring(L, 3)) : "#fde047",
+        lua.lua_tonumber(L, 4) || 10
+      );
+      return 0;
+    });
+
+    regFn("__hyb_shake", function(L) {
+      triggerShake(lua.lua_tonumber(L, 1) || 6, lua.lua_tonumber(L, 2) || 0.16);
+      return 0;
+    });
+
+    regFn("__hyb_scene", function(L) {
+      switchScene(to_jsstring(lua.lua_tostring(L, 1)));
+      return 0;
+    });
+
+    regFn("__hyb_get_prop", function(L) {
+      const id = lua.lua_tonumber(L, 1);
+      const prop = to_jsstring(lua.lua_tostring(L, 2));
+      const n = nodes.find(x => x.id === id);
+      if (!n || n[prop] === undefined || n[prop] === null) { lua.lua_pushnil(L); return 1; }
+      const v = n[prop];
+      if (typeof v === "number") lua.lua_pushnumber(L, v);
+      else if (typeof v === "boolean") lua.lua_pushboolean(L, v);
+      else lua.lua_pushstring(L, to_luastring(String(v)));
+      return 1;
+    });
+
+    regFn("__hyb_set_prop", function(L) {
+      const id = lua.lua_tonumber(L, 1);
+      const prop = to_jsstring(lua.lua_tostring(L, 2));
+      const n = nodes.find(x => x.id === id);
+      if (!n) return 0;
+      const t = lua.lua_type(L, 3);
+      if (t === lua.LUA_TNUMBER) n[prop] = lua.lua_tonumber(L, 3);
+      else if (t === lua.LUA_TBOOLEAN) n[prop] = lua.lua_toboolean(L, 3);
+      else if (t === lua.LUA_TSTRING) n[prop] = to_jsstring(lua.lua_tostring(L, 3));
+      return 0;
+    });
+
+    regFn("__hyb_find", function(L) {
+      const tag = to_jsstring(lua.lua_tostring(L, 1));
+      const hit = nodes.find(o => o.tag === tag || o.name === tag);
+      if (hit) lua.lua_pushnumber(L, hit.id);
+      else lua.lua_pushnil(L);
+      return 1;
+    });
+
+    regFn("__hyb_collides", function(L) {
+      const id = lua.lua_tonumber(L, 1);
+      const tag = lua.lua_isstring(L, 2) ? to_jsstring(lua.lua_tostring(L, 2)) : null;
+      const a = nodes.find(x => x.id === id);
+      if (!a) { lua.lua_pushnil(L); return 1; }
+      const hit = nodes.find(o => o.id !== a.id && (!tag || o.tag === tag || o.name === tag) &&
+        a.x < o.x + o.w && a.x + a.w > o.x && a.y < o.y + o.h && a.y + a.h > o.y);
+      if (hit) lua.lua_pushnumber(L, hit.id);
+      else lua.lua_pushnil(L);
+      return 1;
+    });
+
+    regFn("__hyb_destroy", function(L) {
+      const id = lua.lua_tonumber(L, 1);
+      if (id) scenes[curScene] = nodes = nodes.filter(n => n.id !== id);
+      return 0;
+    });
+
+    regFn("__hyb_spawn", function(L) {
+      const tag = to_jsstring(lua.lua_tostring(L, 1));
+      const x = lua.lua_tonumber(L, 2) || 0;
+      const y = lua.lua_tonumber(L, 3) || 0;
+      const w = lua.lua_tonumber(L, 4) || 12;
+      const h = lua.lua_tonumber(L, 5) || 12;
+      const color = lua.lua_isstring(L, 6) ? to_jsstring(lua.lua_tostring(L, 6)) : "#f59e0b";
+      const vx = lua.lua_tonumber(L, 7) || 0;
+      const vy = lua.lua_tonumber(L, 8) || 0;
+      const life = lua.lua_tonumber(L, 9) || 0;
+      const obj = { id: Date.now() + Math.random(), name: tag, tag, x, y, w, h, color, aid: null, grav: false, solid: false, flipX: false, vx, vy, grounded: false, text: "", script: "", life };
+      nodes.push(obj);
+      lua.lua_pushnumber(L, obj.id);
+      return 1;
+    });
+  }
+
+  function createLuaRunner(luaSrc, nodeName, nodeId = 1) {
+    if (hasRealLua) {
+      const envId = 'env_' + Math.random().toString(36).slice(2, 10);
+      const safeName = nodeName.replace(/"/g, '\\"');
+      window.hyb_pending_src = luaSrc;
+
+      const setupLua = `
+        local synced = {
+          x=true, y=true, w=true, h=true,
+          vx=true, vy=true,
+          grounded=true, color=true, tag=true, name=true, text=true,
+          grav=true, solid=true, life=true, flipX=true
+        }
+
+        local function wrap_id(id)
+          if id == nil then return nil end
+          local store = { _id = id }
+          return setmetatable(store, {
+            __index = function(t, k)
+              if synced[k] then return __hyb_get_prop(id, k) end
+              return rawget(t, k)
+            end,
+            __newindex = function(t, k, v)
+              if synced[k] then
+                __hyb_set_prop(id, k, v)
+              else
+                rawset(t, k, v)
+              end
+            end
+          })
+        end
+
+        _G["${envId}"] = setmetatable({
+          _self = wrap_id(${Number(nodeId)}),
+          print = function(...)
+            local args = {...}
+            local parts = {}
+            for i = 1, select("#", ...) do parts[i] = tostring(args[i]) end
+            __hyb_print(table.concat(parts, "\\t"))
+          end,
+          input = {
+            is_down = function(k) return __hyb_key(tostring(k)) end,
+            mouse_x = function() return __hyb_mouse_x() end,
+            mouse_y = function() return __hyb_mouse_y() end
+          },
+          engine = {
+            find = function(tag) return wrap_id(__hyb_find(tostring(tag))) end,
+            collides = function(o, tag)
+              local oid = (type(o) == "table" and o._id) or o
+              return wrap_id(__hyb_collides(oid, tag))
+            end,
+            destroy = function(o)
+              local oid = (type(o) == "table" and o._id) or o
+              __hyb_destroy(oid)
+            end,
+            spawn = function(tag, x, y, w, h, color, vx, vy, life)
+              return wrap_id(__hyb_spawn(tag, x, y, w or 12, h or 12, color or "#f59e0b", vx or 0, vy or 0, life or 0))
+            end,
+            sound = function(f, d) __hyb_sound(f or 440, d or 0.1) end,
+            particles = function(x, y, col, n) __hyb_particles(x or 0, y or 0, col or "#fde047", n or 10) end,
+            shake = function(mag, dur) __hyb_shake(mag or 6, dur or 0.16) end,
+            load_scene = function(name) __hyb_scene(tostring(name)) end
+          }
+        }, { __index = _G })
+
+        local chunk, err = load(js.global.hyb_pending_src, "${safeName}.lua", "t", _G["${envId}"])
+        if not chunk then
+          js.global.hyb_last_err = tostring(err)
+          return false
+        end
+        local ok, runErr = pcall(chunk)
+        if not ok then
+          js.global.hyb_last_err = tostring(runErr)
+          return false
+        end
+        js.global.hyb_last_err = nil
+        return true
+      `;
+
+      window.hyb_last_err = null;
+      const compiledOk = window.fengari.load(setupLua)();
+      if (!compiledOk || window.hyb_last_err) {
+        throw new Error(window.hyb_last_err || "Syntax error in Lua script");
+      }
+
+      const startFn = window.fengari.load(`
+        local env = _G["${envId}"]
+        return function()
+          if env and type(env.on_start) == "function" then
+            local ok, err = pcall(env.on_start, env._self)
+            if not ok then error(tostring(err), 0) end
+          end
+        end
+      `)();
+
+      const updateFn = window.fengari.load(`
+        local env = _G["${envId}"]
+        return function()
+          if env and type(env.on_update) == "function" then
+            local ok, err = pcall(env.on_update, env._self, __hyb_dt())
+            if not ok then error(tostring(err), 0) end
+          end
+        end
+      `)();
+
+      return {
+        on_start: () => startFn(),
+        on_update: (n, dt) => { currentDt = dt; updateFn(); }
+      };
+    }
+
+    // Fallback translator if offline
+    let lines = luaSrc.split('\n').map(line => {
+      let out = '', inStr = false, q = '';
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (!inStr && (ch === '"' || ch === "'")) { inStr = true; q = ch; out += ch; }
+        else if (inStr && ch === q && line[i - 1] !== '\\') { inStr = false; out += ch; }
+        else if (!inStr && ch === '-' && line[i + 1] === '-') { break; }
+        else { out += ch; }
+      }
+      return out;
+    });
+    let code = lines.join('\n')
+      .replace(/\blocal\s+function\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)/g, 'function $1($2) {')
+      .replace(/\bfunction\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)/g, 'function $1($2) {')
+      .replace(/\blocal\s+/g, 'let ')
+      .replace(/\belseif\b([\s\S]+?)\bthen\b/g, '} else if ($1) {')
+      .replace(/\belse\b/g, '} else {')
+      .replace(/\bif\b([\s\S]+?)\bthen\b/g, 'if ($1) {')
+      .replace(/\bwhile\b([\s\S]+?)\bdo\b/g, 'while ($1) {')
+      .replace(/\bfor\s+([a-zA-Z0-9_]+)\s*=\s*([^,]+),\s*([^,]+)\s*do\b/g, 'for (let $1 = $2; $1 <= $3; $1++) {')
+      .replace(/\bend\b/g, '}')
+      .replace(/~=/g, '!==').replace(/\band\b/g, '&&').replace(/\bor\b/g, '||')
+      .replace(/\bnot\b/g, '!').replace(/\bnil\b/g, 'null').replace(/\.\./g, '+');
+
+    const fn = new Function('obj', 'dt', 'input', 'engine', 'math', 'print', `
+      ${code}
+      return {
+        on_start: typeof on_start === 'function' ? on_start : null,
+        on_update: typeof on_update === 'function' ? on_update : null
+      };
+    `);
+    return fn(null, 0.016, luaInputAPI, luaEngineAPI, Math, logOut);
+  }
+
+  /* ==================== WEB AUDIO SYNTHESIZER ==================== */
+  let audioCtx = null;
+  function playTone(freq = 440, dur = 0.12, type = 'triangle') {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  /* ==================== PRO 2D LUA SCRIPTS (GRAVITY-SAFE!) ==================== */
+  const defaultPlayerLua = `-- Pro 2D Platformer Hero (Coyote Jump + Double Jump + Blaster + Stomp)
+function on_start(obj)
+  obj.grav = true
+  obj.speed = 250
+  obj.jump = -490
+  obj.hp = 100
+  obj.score = 0
+  obj.coyote = 0
+  obj.jumps_left = 2
+  obj.jump_held = false
+  obj.fire_cd = 0
+  obj.invuln = 0
+end
+
+function on_update(obj, dt)
+  local hud = engine.find("HUD")
+  if hud ~= nil then
+    hud.text = string.format("HP: %d  |  Score: %d  |  A/D Move • Space Jump • Click Shoot", obj.hp, obj.score)
+  end
+
+  if obj.grounded then
+    obj.coyote = 0.12
+    obj.jumps_left = 2
+  else
+    obj.coyote = math.max(0, obj.coyote - dt)
+  end
+
+  obj.vx = 0
+  if input.is_down("a") or input.is_down("arrowleft") then
+    obj.vx = -obj.speed
+    obj.flipX = true
+  end
+  if input.is_down("d") or input.is_down("arrowright") then
+    obj.vx = obj.speed
+    obj.flipX = false
+  end
+
+  local jump_key = input.is_down("w") or input.is_down("space") or input.is_down("arrowup")
+  if jump_key and not obj.jump_held then
+    if obj.coyote > 0 or obj.jumps_left > 0 then
+      obj.vy = obj.jump
+      obj.grounded = false
+      obj.coyote = 0
+      obj.jumps_left = obj.jumps_left - 1
+      engine.particles(obj.x + obj.w * 0.5, obj.y + obj.h, "#93c5fd", 7)
+      engine.sound(520, 0.09)
+    end
+  end
+  obj.jump_held = jump_key
+
+  -- Blaster Shot toward cursor
+  obj.fire_cd = math.max(0, obj.fire_cd - dt)
+  if (input.is_down("mouse1") or input.is_down("e")) and obj.fire_cd <= 0 then
+    obj.fire_cd = 0.2
+    local cx = obj.x + obj.w * 0.5
+    local cy = obj.y + obj.h * 0.5
+    local ang = math.atan(input.mouse_y() - cy, input.mouse_x() - cx)
+    local bspd = 560
+    engine.spawn("Bullet", cx - 5, cy - 5, 10, 10, "#fde047", math.cos(ang) * bspd, math.sin(ang) * bspd, 1.3)
+    engine.sound(820, 0.06)
+  end
+
+  -- Collect Coins
+  local coin = engine.collides(obj, "Coin")
+  if coin ~= nil then
+    engine.particles(coin.x + coin.w * 0.5, coin.y + coin.h * 0.5, "#f59e0b", 12)
+    engine.destroy(coin)
+    obj.score = obj.score + 25
+    engine.sound(960, 0.1)
+  end
+
+  -- Enemy Stomp or Damage
+  obj.invuln = math.max(0, obj.invuln - dt)
+  local enemy = engine.collides(obj, "Enemy")
+  if enemy ~= nil then
+    if obj.vy > 60 and (obj.y + obj.h - 10) < (enemy.y + enemy.h * 0.5) then
+      -- Mario-style stomp bounce!
+      obj.vy = obj.jump * 0.85
+      engine.particles(enemy.x + enemy.w * 0.5, enemy.y + enemy.h * 0.5, "#ef4444", 16)
+      engine.shake(6, 0.14)
+      engine.spawn("Coin", enemy.x + 8, enemy.y, 18, 18, "#f59e0b", 0, -180, 0)
+      engine.destroy(enemy)
+      obj.score = obj.score + 50
+      engine.sound(640, 0.12)
+    elseif obj.invuln <= 0 then
+      obj.hp = math.max(0, obj.hp - 15)
+      obj.invuln = 0.75
+      obj.vy = -240
+      engine.shake(8, 0.2)
+      engine.sound(210, 0.16)
+    end
+  end
+
+  -- Spike / Pit Reset
+  if engine.collides(obj, "Spike") ~= nil or obj.y > 900 then
+    obj.x = 120
+    obj.y = 140
+    obj.vy = 0
+    obj.hp = math.max(0, obj.hp - 25)
+    engine.shake(8, 0.2)
+    engine.sound(180, 0.2)
+  end
+end`;
+
+  // Smart Hybrid Enemy AI: Works automatically whether Gravity is ON (platformer) or OFF (top-down)!
+  const topDownEnemyLua = `-- Smart Hybrid Enemy AI (Auto-adapts when Gravity is ON or OFF!)
+function on_start(obj)
+  obj.hp = 3
+  obj.speed = 105
+  obj.jump_force = -410
+  obj.hit_flash = 0
+  obj.jump_cd = 0
+end
+
+function on_update(obj, dt)
+  if obj.hit_flash > 0 then
+    obj.hit_flash = obj.hit_flash - dt
+    if obj.hit_flash <= 0 then obj.color = "#ef4444" end
+  end
+  obj.jump_cd = math.max(0, obj.jump_cd - dt)
+
+  local target = engine.find("Player")
+  if target ~= nil then
+    local dx = (target.x + target.w * 0.5) - (obj.x + obj.w * 0.5)
+    local dy = (target.y + target.h * 0.5) - (obj.y + obj.h * 0.5)
+    local dist = math.sqrt(dx * dx + dy * dy)
+
+    if obj.grav then
+      -- GRAVITY MODE (Side-Scroller): Move horizontally and preserve obj.vy for gravity!
+      if math.abs(dx) > 6 and dist < 520 then
+        local dir = dx > 0 and 1 or -1
+        obj.vx = dir * obj.speed
+        obj.flipX = dir < 0
+        -- Jump up onto ledges or if blocked by a wall while chasing
+        if obj.grounded and obj.jump_cd <= 0 and (dy < -48 or math.abs(obj.vx) < 5) then
+          obj.vy = obj.jump_force
+          obj.grounded = false
+          obj.jump_cd = 0.75
+        end
+      else
+        obj.vx = 0
+      end
+    else
+      -- TOP-DOWN MODE (No Gravity): 8-way chase
+      if dist > 4 and dist < 420 then
+        obj.vx = (dx / dist) * obj.speed
+        obj.vy = (dy / dist) * obj.speed
+        obj.flipX = dx < 0
+      else
+        obj.vx = 0
+        obj.vy = 0
+      end
+    end
+  end
+
+  local b = engine.collides(obj, "Bullet")
+  if b ~= nil then
+    engine.particles(b.x, b.y, "#fde047", 8)
+    engine.destroy(b)
+    obj.hp = obj.hp - 1
+    obj.color = "#ffffff"
+    obj.hit_flash = 0.08
+    engine.sound(320, 0.07)
+    if obj.hp <= 0 then
+      engine.particles(obj.x + obj.w * 0.5, obj.y + obj.h * 0.5, "#ef4444", 16)
+      engine.shake(5, 0.12)
+      engine.spawn("Coin", obj.x + 8, obj.y + 4, 18, 18, "#f59e0b", 0, obj.grav and -160 or 0, 0)
+      engine.destroy(obj)
+      engine.sound(520, 0.14)
+    end
+  end
+end`;
+
+  const platformerEnemyLua = `-- Gravity Platformer Patrol & Chase Enemy
+function on_start(obj)
+  obj.grav = true
+  obj.speed = 115
+  obj.dir = -1
+  obj.hp = 2
+  obj.hit_flash = 0
+end
+
+function on_update(obj, dt)
+  if obj.hit_flash > 0 then
+    obj.hit_flash = obj.hit_flash - dt
+    if obj.hit_flash <= 0 then obj.color = "#ef4444" end
+  end
+
+  local target = engine.find("Player")
+  if target ~= nil and math.abs(target.x - obj.x) < 280 and math.abs(target.y - obj.y) < 120 then
+    obj.dir = target.x > obj.x and 1 or -1
+  end
+
+  obj.vx = obj.dir * obj.speed
+  obj.flipX = obj.dir < 0
+
+  -- Jump when grounded if player is above
+  if target ~= nil and obj.grounded and (target.y + target.h) < obj.y - 20 and math.abs(target.x - obj.x) < 180 then
+    obj.vy = -420
+    obj.grounded = false
+  end
+
+  local b = engine.collides(obj, "Bullet")
+  if b ~= nil then
+    engine.particles(b.x, b.y, "#fde047", 8)
+    engine.destroy(b)
+    obj.hp = obj.hp - 1
+    obj.color = "#ffffff"
+    obj.hit_flash = 0.08
+    if obj.hp <= 0 then
+      engine.particles(obj.x + obj.w * 0.5, obj.y + obj.h * 0.5, "#ef4444", 14)
+      engine.destroy(obj)
+      engine.sound(520, 0.14)
+    end
+  end
+end`;
+
+  const topDownHeroLua = `-- Top-Down Twin-Stick Hero (Move + Dash + Mouse Aim)
+function on_start(obj)
+  obj.grav = false
+  obj.speed = 220
+  obj.dash_timer = 0
+  obj.dash_cd = 0
+  obj.dash_dx = 1
+  obj.dash_dy = 0
+  obj.fire_cd = 0
+  obj.hp = 100
+  obj.score = 0
+end
+
+function on_update(obj, dt)
+  local hud = engine.find("HUD")
+  if hud ~= nil then
+    hud.text = string.format("HP: %d  |  Score: %d  |  Dash: %s", obj.hp, obj.score, obj.dash_cd <= 0 and "READY" or "...")
+  end
+
+  local ix, iy = 0, 0
+  if input.is_down("a") or input.is_down("arrowleft") then ix = ix - 1; obj.flipX = true end
+  if input.is_down("d") or input.is_down("arrowright") then ix = ix + 1; obj.flipX = false end
+  if input.is_down("w") or input.is_down("arrowup") then iy = iy - 1 end
+  if input.is_down("s") or input.is_down("arrowdown") then iy = iy + 1 end
+
+  local len = math.sqrt(ix * ix + iy * iy)
+  if len > 0 then
+    ix, iy = ix / len, iy / len
+    obj.dash_dx, obj.dash_dy = ix, iy
+  end
+
+  obj.dash_cd = math.max(0, obj.dash_cd - dt)
+  if input.is_down("space") and obj.dash_cd <= 0 then
+    obj.dash_timer = 0.14
+    obj.dash_cd = 0.75
+    obj.color = "#60a5fa"
+    engine.particles(obj.x + obj.w * 0.5, obj.y + obj.h * 0.5, "#60a5fa", 10)
+    engine.sound(640, 0.09)
+  end
+
+  if obj.dash_timer > 0 then
+    obj.dash_timer = obj.dash_timer - dt
+    obj.vx = obj.dash_dx * 620
+    obj.vy = obj.dash_dy * 620
+    if obj.dash_timer <= 0 then obj.color = "#3b82f6" end
+  else
+    obj.vx = ix * obj.speed
+    obj.vy = iy * obj.speed
+  end
+
+  obj.fire_cd = math.max(0, obj.fire_cd - dt)
+  if (input.is_down("mouse1") or input.is_down("e")) and obj.fire_cd <= 0 then
+    obj.fire_cd = 0.18
+    local cx = obj.x + obj.w * 0.5
+    local cy = obj.y + obj.h * 0.5
+    local ang = math.atan(input.mouse_y() - cy, input.mouse_x() - cx)
+    local bspd = 540
+    engine.spawn("Bullet", cx - 5, cy - 5, 10, 10, "#fde047", math.cos(ang) * bspd, math.sin(ang) * bspd, 1.4)
+    engine.sound(780, 0.06)
+  end
+
+  local coin = engine.collides(obj, "Coin")
+  if coin ~= nil then
+    engine.particles(coin.x + 8, coin.y + 8, "#f59e0b", 10)
+    engine.destroy(coin)
+    obj.score = obj.score + 25
+    engine.sound(960, 0.1)
+  end
+
+  local enemy = engine.collides(obj, "Enemy")
+  if enemy ~= nil and obj.dash_timer <= 0 then
+    obj.hp = math.max(0, obj.hp - 1)
+  end
+end`;
+
+  const movingPlatLua = `-- Smooth Horizontal Moving Platform
+function on_start(obj)
+  obj.start_x = obj.x
+  obj.range = 120
+  obj.dir = 1
+end
+
+function on_update(obj, dt)
+  obj.vx = obj.dir * 85
+  if obj.x > obj.start_x + obj.range then obj.dir = -1 end
+  if obj.x < obj.start_x - obj.range then obj.dir = 1 end
+end`;
+
+  function buildTemplateScenes(tpl) {
+    if (tpl === "topdown") {
+      return {
+        "Dungeon": [
+          { id: 1, name: "Hero", tag: "Player", x: 140, y: 180, w: 32, h: 32, color: "#3b82f6", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: topDownHeroLua },
+          { id: 2, name: "Slime_1", tag: "Enemy", x: 460, y: 110, w: 34, h: 34, color: "#ef4444", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: topDownEnemyLua },
+          { id: 3, name: "WallNorth", tag: "Wall", x: 40, y: 40, w: 580, h: 20, color: "#334155", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 4, name: "WallSouth", tag: "Wall", x: 40, y: 340, w: 580, h: 20, color: "#334155", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 5, name: "WallWest", tag: "Wall", x: 40, y: 60, w: 20, h: 280, color: "#334155", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 6, name: "WallEast", tag: "Wall", x: 600, y: 60, w: 20, h: 280, color: "#334155", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 7, name: "Pillar", tag: "Wall", x: 290, y: 160, w: 40, h: 60, color: "#475569", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 8, name: "ChestCoin", tag: "Coin", x: 420, y: 190, w: 20, h: 20, color: "#f59e0b", aid: null, grav: false, solid: false, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+          { id: 9, name: "HUD", tag: "Text", x: 46, y: 12, w: 200, h: 24, color: "#f8fafc", aid: null, grav: false, solid: false, flipX: false, vx: 0, vy: 0, grounded: false, text: "HP: 100  |  Score: 0  |  Dash: READY", script: "" }
+        ]
+      };
+    }
+    if (tpl === "blank") {
+      return {
+        "MainScene": [
+          { id: 1, name: "Hero", tag: "Player", x: 140, y: 160, w: 34, h: 34, color: "#3b82f6", aid: null, grav: true, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: defaultPlayerLua },
+          { id: 2, name: "Ground", tag: "Platform", x: 40, y: 320, w: 640, h: 36, color: "#10b981", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" }
+        ]
+      };
+    }
+    return {
+      "Level1": [
+        { id: 1, name: "Hero", tag: "Player", x: 120, y: 140, w: 34, h: 36, color: "#3b82f6", aid: null, grav: true, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: defaultPlayerLua },
+        { id: 2, name: "MainFloor", tag: "Platform", x: 40, y: 340, w: 760, h: 40, color: "#10b981", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+        { id: 3, name: "Ledge_Left", tag: "OneWay", x: 180, y: 245, w: 130, h: 16, color: "#38bdf8", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+        { id: 4, name: "Ledge_High", tag: "OneWay", x: 370, y: 175, w: 140, h: 16, color: "#38bdf8", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+        { id: 5, name: "GoombaEnemy", tag: "Enemy", x: 540, y: 220, w: 34, h: 34, color: "#ef4444", aid: null, grav: true, solid: true, flipX: true, vx: 0, vy: 0, grounded: false, text: "", script: topDownEnemyLua },
+        { id: 6, name: "GoldCoin_1", tag: "Coin", x: 235, y: 205, w: 22, h: 22, color: "#f59e0b", aid: null, grav: false, solid: false, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+        { id: 7, name: "GoldCoin_2", tag: "Coin", x: 430, y: 135, w: 22, h: 22, color: "#f59e0b", aid: null, grav: false, solid: false, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" },
+        { id: 8, name: "HUD", tag: "Text", x: 20, y: 16, w: 320, h: 24, color: "#f8fafc", aid: null, grav: false, solid: false, flipX: false, vx: 0, vy: 0, grounded: false, text: "HP: 100  |  Score: 0  |  A/D Move • Space Jump • Click Shoot", script: "" }
+      ]
+    };
+  }
+
+  let projs = [
+    { id: 1, name: "Pro 2D Platformer", tpl: "2D Platformer", scenes: buildTemplateScenes("platformer"), assets: [] },
+    { id: 2, name: "Top-Down Dungeon RPG", tpl: "Top-Down Action RPG", scenes: buildTemplateScenes("topdown"), assets: [] }
+  ];
+
+  try {
+    const saved = localStorage.getItem("hybrid_engine_pro2d_v1");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length) projs = parsed;
+    }
+  } catch (e) {}
+
+  function saveStorage() {
+    try {
+      const p = projs.find(x => x.id === activeProjId);
+      if (p) {
+        p.scenes = scenes;
+        p.world = worldCfg;
+        p.assets = assets.map(a => ({
+          id: a.id,
+          name: a.name,
+          cat: a.cat,
+          fps: a.fps,
+          src: a.src,
+          frameSrcs: a.frames.map(im => im.src)
+        }));
+      }
+      localStorage.setItem("hybrid_engine_pro2d_v1", JSON.stringify(projs));
+    } catch (e) {}
+  }
+
+  function hydrateAssets(rawAssets) {
+    assets = [];
+    if (!Array.isArray(rawAssets)) return;
+    rawAssets.forEach(ra => {
+      const srcs = Array.isArray(ra.frameSrcs) && ra.frameSrcs.length ? ra.frameSrcs : [ra.src];
+      const imgs = srcs.map(s => { const im = new Image(); im.src = s; return im; });
+      assets.push({ id: ra.id, name: ra.name, cat: ra.cat, fps: ra.fps || 6, src: ra.src, frames: imgs });
+    });
+  }
+
+  let activeProjId = projs[0].id;
+  let selectedTpl = "platformer";
+  let assets = [], impType = "Sprite";
+  let dTab = "assets", logs = [hasRealLua ? "[HybridEngine Pro 2D] Lua VM + Enemy Gravity Physics + Particles ready!" : "[HybridEngine] Offline Lua runtime active."];
+  document.getElementById("vm-status").textContent = hasRealLua ? "● Full 2D Lua VM + Gravity Physics Ready" : "● Offline Lua Runtime Ready";
+
+  scenes = projs[0].scenes;
+  curScene = Object.keys(scenes)[0];
+  nodes = scenes[curScene];
+  let sel = 1, snap = true, play = false, camFollow = true, savedScenes = null, drag = null, panDrag = false, off = { x: 0, y: 0 }, cam = { x: 0, y: 0 }, luaRunners = {}, errLogged = {};
+
+  function resetCam() { cam = { x: 0, y: 0 }; }
+
+  function logOut(msg) {
+    logs.push(String(msg));
+    if (logs.length > 60) logs.shift();
+    if (dTab === "console") drawDrawer();
+  }
+
+  const luaInputAPI = {
+    is_down: k => (k === "mouse1" || k === "click") ? !!mouse.down : !!keys[String(k).toLowerCase()],
+    mouse_x: () => mouse.x,
+    mouse_y: () => mouse.y
+  };
+  const luaEngineAPI = {
+    find: tag => nodes.find(o => o.tag === tag || o.name === tag) || null,
+    collides: (a, tag) => nodes.find(o => o.id !== a.id && (!tag || o.tag === tag || o.name === tag) && a.x < o.x + o.w && a.x + a.w > o.x && a.y < o.y + o.h && a.y + a.h > o.y) || null,
+    destroy: target => { if (target) scenes[curScene] = nodes = nodes.filter(n => n.id !== target.id); },
+    spawn: (tag, x, y, w = 12, h = 12, color = "#f59e0b", vx = 0, vy = 0, life = 0) => {
+      const obj = { id: Date.now() + Math.random(), name: tag, tag, x, y, w, h, color, aid: null, grav: false, solid: false, flipX: false, vx, vy, grounded: false, text: "", script: "", life };
+      nodes.push(obj); return obj;
+    },
+    sound: (freq, dur) => playTone(freq, dur),
+    particles: (x, y, col, n) => spawnParticles(x, y, col, n),
+    shake: (mag, dur) => triggerShake(mag, dur),
+    load_scene: name => switchScene(name)
+  };
+
+  /* Hub & New Project Creator */
+  function drawHub() {
+    document.getElementById("pgrid").innerHTML = projs.map(p => `
+      <div class="card">
+        <strong>${p.name}</strong>
+        <span style="font-size:12px;color:#64748b">${p.tpl} • ${Object.keys(p.scenes).length} Scene(s)</span>
+        <div class="card-actions">
+          <button class="btn blue" style="flex:1" onclick="openProjectById(${p.id})">Open Project</button>
+          ${projs.length > 1 ? `<button class="btn red" onclick="deleteProject(${p.id})">✕</button>` : ''}
+        </div>
+      </div>`).join("");
+  }
+
+  function openNewProjModal(tpl = "platformer") {
+    pickTpl(tpl);
+    document.getElementById("np-name").value = "Lua2D_" + (projs.length + 1);
+    document.getElementById("npmod").classList.add("open");
+    setTimeout(() => document.getElementById("np-name").select(), 30);
+  }
+  function closeNewProjModal() { document.getElementById("npmod").classList.remove("open"); }
+  function pickTpl(tpl) {
+    selectedTpl = tpl;
+    ["platformer", "topdown", "blank"].forEach(k => document.getElementById("tpl-" + k).classList.toggle("on", k === tpl));
+  }
+  function confirmCreateProject() {
+    const rawName = document.getElementById("np-name").value.trim();
+    const name = rawName || ("Lua2D_" + (projs.length + 1));
+    const labels = { topdown: "Top-Down Action RPG", platformer: "2D Platformer", blank: "Blank 2D Project" };
+    const newP = {
+      id: Date.now(),
+      name,
+      tpl: labels[selectedTpl] || "2D Platformer",
+      scenes: buildTemplateScenes(selectedTpl),
+      assets: []
+    };
+    projs.unshift(newP);
+    saveStorage();
+    closeNewProjModal();
+    openProjectById(newP.id);
+    logOut(`[Project] Created "${name}" (${newP.tpl})`);
+  }
+  function deleteProject(id) {
+    if (projs.length <= 1) return;
+    projs = projs.filter(p => p.id !== id);
+    saveStorage();
+    drawHub();
+  }
+  function openProjectById(id) {
+    const p = projs.find(x => x.id === id) || projs[0];
+    if (!p) return;
+    activeProjId = p.id;
+    scenes = p.scenes;
+    worldCfg = p.world || { gravity: 1150, skyTop: "#090d16", skyBot: "#111927", showGrid: true };
+    hydrateAssets(p.assets || []);
+    curScene = Object.keys(scenes)[0];
+    nodes = scenes[curScene];
+    sel = nodes[0] ? nodes[0].id : null;
+    document.getElementById("ed-proj-title").textContent = p.name;
+    document.getElementById("hub").style.display = "none";
+    document.getElementById("ed").style.display = "flex";
+    refreshSceneSelect(); resVp(); resetCam(); drawTree(); drawInsp(); drawDrawer();
+  }
+  function toHub() {
+    if (play) togglePlay();
+    saveStorage();
+    document.getElementById("ed").style.display = "none";
+    document.getElementById("hub").style.display = "flex";
+    drawHub();
+  }
+
+  /* Multi-Scene Switcher */
+  function refreshSceneSelect() {
+    document.getElementById("scene-sel").innerHTML = Object.keys(scenes).map(s => `<option value="${s}" ${s === curScene ? 'selected' : ''}>Scene: ${s}</option>`).join("");
+  }
+  function switchScene(name) {
+    if (!scenes[name]) return;
+    curScene = name;
+    nodes = scenes[curScene];
+    sel = nodes[0] ? nodes[0].id : null;
+    refreshSceneSelect(); drawTree(); drawInsp();
+    if (play) bootLuaScripts();
+  }
+  function newScene() {
+    const name = "Level" + (Object.keys(scenes).length + 1);
+    scenes[name] = [
+      { id: Date.now(), name: "Hero", tag: "Player", x: 120, y: 140, w: 34, h: 36, color: "#3b82f6", aid: null, grav: true, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: defaultPlayerLua },
+      { id: Date.now() + 1, name: "Floor", tag: "Platform", x: 40, y: 340, w: 680, h: 40, color: "#10b981", aid: null, grav: false, solid: true, flipX: false, vx: 0, vy: 0, grounded: false, text: "", script: "" }
+    ];
+    switchScene(name);
+    saveStorage();
+    logOut(`[Scene] Created "${name}"`);
+  }
+
+  /* Lua Script Editor */
+  const blankLua = `function on_start(obj)\n  -- Runs once when Play starts\nend\n\nfunction on_update(obj, dt)\n  -- Runs every frame\nend`;
+  function openScript() {
+    const n = nodes.find(x => x.id === sel); if (!n) return;
+    document.getElementById("sc-target").textContent = `${n.name}.lua`;
+    document.getElementById("sccode").value = n.script || blankLua;
+    document.getElementById("scerr").style.display = "none";
+    document.getElementById("scmod").classList.add("open");
+  }
+  function closeScript() { document.getElementById("scmod").classList.remove("open"); }
+  function saveScript() {
+    const n = nodes.find(x => x.id === sel); if (!n) return;
+    const code = document.getElementById("sccode").value;
+    try {
+      const runner = createLuaRunner(code, n.name, n.id);
+      n.script = code.trim();
+      delete errLogged[n.id];
+      if (play) {
+        luaRunners[n.id] = runner;
+        if (runner.on_start) runner.on_start(n);
+      } else {
+        saveStorage();
+      }
+      closeScript(); drawTree(); drawInsp();
+      logOut(`[Lua] Saved & compiled ${n.name}.lua`);
+    } catch (e) {
+      const err = document.getElementById("scerr");
+      err.textContent = "Lua Error: " + formatLuaErr(e);
+      err.style.display = "block";
+    }
+  }
+  function snip(type) {
+    const map = {
+      plat: defaultPlayerLua,
+      plat_enemy: platformerEnemyLua,
+      topdown: topDownHeroLua,
+      chaser: topDownEnemyLua,
+      moving_plat: movingPlatLua
+    };
+    document.getElementById("sccode").value = map[type];
+    document.getElementById("scerr").style.display = "none";
+  }
+
+  function bootLuaScripts() {
+    luaRunners = {};
+    errLogged = {};
+    particles = [];
+    nodes.forEach(n => {
+      if (n.script) {
+        try {
+          const runner = createLuaRunner(n.script, n.name, n.id);
+          luaRunners[n.id] = runner;
+          if (runner.on_start) runner.on_start(n);
+        } catch (e) { logOut(`[Lua Error in ${n.name}.lua] ${formatLuaErr(e)}`); }
+      }
+    });
+  }
+
+  function togglePlay() {
+    play = !play; const b = document.getElementById("pbtn");
+    if (play) {
+      if (document.activeElement) document.activeElement.blur();
+      vp.focus();
+      savedScenes = JSON.parse(JSON.stringify(scenes));
+      bootLuaScripts();
+      b.textContent = "■ Stop"; b.className = "btn red";
+      logOut("[Runtime] Simulation started.");
+    } else {
+      scenes = savedScenes;
+      const p = projs.find(x => x.id === activeProjId);
+      if (p) p.scenes = scenes;
+      nodes = scenes[curScene];
+      luaRunners = {};
+      particles = [];
+      b.textContent = "▶ Play"; b.className = "btn green";
+      resetCam();
+      drawTree(); drawInsp();
+      logOut("[Runtime] Simulation stopped.");
+    }
+  }
+
+  /* ==================== IMAGE & ZIP SPRITE/TILESET IMPORTER + DELETER ==================== */
+  function startImp(t) { impType = t; document.getElementById("fimp").click(); }
+
+  function loadImageFromSrc(src) {
+    return new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = reject;
+      im.src = src;
+    });
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = ev => resolve(ev.target.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function impFile(e) {
+    const fileList = Array.from(e.target.files || []);
+    if (!fileList.length) return;
+    let importedCount = 0;
+
+    for (const f of fileList) {
+      const lower = f.name.toLowerCase();
+      if (lower.endsWith(".zip") || f.type === "application/zip" || f.type === "application/x-zip-compressed") {
+        if (typeof window.JSZip === "undefined") {
+          logOut("[Import Error] JSZip library failed to load.");
+          continue;
+        }
+        try {
+          const zip = await window.JSZip.loadAsync(f);
+          const entries = Object.values(zip.files)
+            .filter(entry => !entry.dir && !entry.name.startsWith("__MACOSX/") && /\.(png|jpg|jpeg|gif|webp|bmp)$/i.test(entry.name))
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+          const folders = {};
+          for (const entry of entries) {
+            const parts = entry.name.split("/");
+            const folderKey = parts.length > 1 ? parts[parts.length - 2] : "";
+            if (!folders[folderKey]) folders[folderKey] = [];
+            folders[folderKey].push(entry);
+          }
+
+          for (const [folderName, group] of Object.entries(folders)) {
+            if (folderName && group.length > 1 && impType === "Sprite") {
+              const imgs = [];
+              for (const entry of group) {
+                const ext = entry.name.split(".").pop().toLowerCase();
+                const mime = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "gif" ? "image/gif" : ext === "webp" ? "image/webp" : "image/png";
+                const b64 = await entry.async("base64");
+                imgs.push(await loadImageFromSrc(`data:${mime};base64,${b64}`));
+              }
+              assets.push({ id: Date.now() + Math.random(), name: folderName, cat: impType, frames: imgs, fps: 8, src: imgs[0].src });
+              importedCount++;
+            } else {
+              for (const entry of group) {
+                const ext = entry.name.split(".").pop().toLowerCase();
+                const mime = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "gif" ? "image/gif" : ext === "webp" ? "image/webp" : "image/png";
+                const b64 = await entry.async("base64");
+                const src = `data:${mime};base64,${b64}`;
+                const im = await loadImageFromSrc(src);
+                const cleanName = entry.name.split("/").pop().replace(/\.[^.]+$/, "");
+                assets.push({ id: Date.now() + Math.random(), name: cleanName, cat: impType, frames: [im], fps: 6, src });
+                importedCount++;
+              }
+            }
+          }
+          logOut(`[ZIP Import] Extracted ${importedCount} ${impType}(s) from "${f.name}".`);
+        } catch (err) {
+          logOut(`[ZIP Error] Could not read "${f.name}": ${err.message}`);
+        }
+      } else if (f.type.startsWith("image/") || /\.(png|jpg|jpeg|gif|webp|bmp)$/i.test(lower)) {
+        try {
+          const src = await readFileAsDataURL(f);
+          const im = await loadImageFromSrc(src);
+          assets.push({ id: Date.now() + Math.random(), name: f.name.replace(/\.[^.]+$/, ""), cat: impType, frames: [im], fps: 6, src });
+          importedCount++;
+        } catch (err) {
+          logOut(`[Import Error] Failed to load "${f.name}".`);
+        }
+      }
+    }
+
+    if (importedCount > 0) {
+      saveStorage();
+      drawDrawer();
+      drawInsp();
+      refreshPxAssetSelect();
+    }
+    e.target.value = "";
+  }
+
+  function applyAsset(aid) { const n = nodes.find(x => x.id === sel); if (n) { n.aid = aid; saveStorage(); drawInsp(); } }
+
+  function deleteAsset(aid, ev) {
+    if (ev) ev.stopPropagation();
+    const target = assets.find(a => String(a.id) === String(aid));
+    if (!target) return;
+    assets = assets.filter(a => String(a.id) !== String(aid));
+    Object.values(scenes).forEach(list => list.forEach(n => { if (String(n.aid) === String(aid)) n.aid = null; }));
+    saveStorage();
+    drawDrawer();
+    drawInsp();
+    refreshPxAssetSelect();
+    logOut(`[Assets] Deleted "${target.name}".`);
+  }
+
+  function deleteSelectedPxAsset() {
+    const selEl = document.getElementById("px-asset-sel");
+    if (selEl && selEl.value) deleteAsset(selEl.value);
+  }
+
+  /* ==================== PIXEL ANIMATOR ==================== */
+  const pxc = document.getElementById("pxc"), pxctx = pxc.getContext("2d");
+  const animc = document.getElementById("animc"), actx = animc.getContext("2d");
+  let gsz = 16, frames = [], fcur = 0, tool = "pen", pdown = false;
+  const cols = ["#ffffff", "#94a3b8", "#0f172a", "#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#78350f", "#fde047"];
+  document.getElementById("pal").innerHTML = cols.map(c => `<div style="height:22px;background:${c};border-radius:4px;cursor:pointer" onclick="document.getElementById('pxcol').value='${c}';setTool('pen')"></div>`).join("");
+
+  function refreshPxAssetSelect() {
+    const selEl = document.getElementById("px-asset-sel");
+    if (!selEl) return;
+    if (!assets.length) { selEl.innerHTML = `<option value="">No imported assets yet</option>`; return; }
+    selEl.innerHTML = assets.map(a => `<option value="${a.id}">${a.name} (${a.cat}, ${a.frames.length}f)</option>`).join("");
+  }
+
+  function imageToGrid(img, size) {
+    const cv = document.createElement("canvas");
+    cv.width = size; cv.height = size;
+    const cx = cv.getContext("2d");
+    cx.imageSmoothingEnabled = false;
+    cx.clearRect(0, 0, size, size);
+    cx.drawImage(img, 0, 0, size, size);
+    const data = cx.getImageData(0, 0, size, size).data;
+    const grid = blank(size);
+    const toHex = n => n.toString(16).padStart(2, "0");
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = (y * size + x) * 4;
+        if (data[idx + 3] > 25) grid[y][x] = `#${toHex(data[idx])}${toHex(data[idx + 1])}${toHex(data[idx + 2])}`;
+      }
+    }
+    return grid;
+  }
+
+  function loadImportedIntoPx() {
+    const selEl = document.getElementById("px-asset-sel");
+    if (!selEl || !selEl.value) return;
+    const asset = assets.find(a => String(a.id) === String(selEl.value));
+    if (!asset || !asset.frames.length) return;
+    const natW = asset.frames[0].naturalWidth || asset.frames[0].width || 16;
+    const targetSize = natW >= 24 ? 32 : 16;
+    gsz = targetSize;
+    document.getElementById("pxsz").value = String(targetSize);
+    frames = asset.frames.map(im => imageToGrid(im, targetSize));
+    fcur = 0;
+    document.getElementById("aname").value = asset.name + "_edit";
+    document.getElementById("pxcat").value = asset.cat;
+    document.getElementById("afps").value = asset.fps || 6;
+    drawPx(); drawStrip();
+  }
+
+  function blank(s) { return Array.from({ length: s }, () => Array(s).fill(null)); }
+  function initPx(s) { gsz = s; frames = [blank(s)]; fcur = 0; drawPx(); drawStrip(); }
+  function openPx() {
+    document.getElementById("pxmod").classList.add("open");
+    refreshPxAssetSelect();
+    if (!frames.length) initPx(16);
+    drawPx(); drawStrip();
+  }
+  function closePx() { document.getElementById("pxmod").classList.remove("open"); }
+  function setTool(t) { tool = t; ["pen", "erase", "fill"].forEach((k, i) => document.getElementById(["tp", "te", "tf"][i]).classList.toggle("on", k === t)); }
+  function addF() { frames.push(blank(gsz)); fcur = frames.length - 1; drawPx(); drawStrip(); }
+  function dupF() { frames.splice(fcur + 1, 0, frames[fcur].map(r => [...r])); fcur++; drawPx(); drawStrip(); }
+  function delF() { if (frames.length > 1) { frames.splice(fcur, 1); fcur = Math.max(0, fcur - 1); drawPx(); drawStrip(); } }
+
+  function fill(x, y, tc, rc) {
+    if (tc === rc || x < 0 || x >= gsz || y < 0 || y >= gsz || frames[fcur][y][x] !== tc) return;
+    frames[fcur][y][x] = rc; fill(x + 1, y, tc, rc); fill(x - 1, y, tc, rc); fill(x, y + 1, tc, rc); fill(x, y - 1, tc, rc);
+  }
+  function paint(e) {
+    const r = pxc.getBoundingClientRect(), c = pxc.width / gsz, x = Math.floor((e.clientX - r.left) / c), y = Math.floor((e.clientY - r.top) / c);
+    if (x < 0 || x >= gsz || y < 0 || y >= gsz) return;
+    const col = document.getElementById("pxcol").value;
+    if (tool === "pen") frames[fcur][y][x] = col;
+    else if (tool === "erase") frames[fcur][y][x] = null;
+    else fill(x, y, frames[fcur][y][x], col);
+    drawPx(); drawStrip();
+  }
+  pxc.onmousedown = e => { pdown = true; paint(e); }; pxc.onmousemove = e => { if (pdown && tool !== "fill") paint(e); };
+  window.onmouseup = () => { pdown = false; drag = null; panDrag = false; mouse.down = false; };
+
+  function drawPx() {
+    pxctx.clearRect(0, 0, 320, 320); const c = 320 / gsz, g = frames[fcur];
+    if (fcur > 0) { pxctx.globalAlpha = .2; frames[fcur - 1].forEach((r, y) => r.forEach((v, x) => { if (v) { pxctx.fillStyle = v; pxctx.fillRect(x * c, y * c, c, c); } })); pxctx.globalAlpha = 1; }
+    g.forEach((r, y) => r.forEach((v, x) => { if (v) { pxctx.fillStyle = v; pxctx.fillRect(x * c, y * c, c, c); } }));
+    pxctx.strokeStyle = "rgba(255,255,255,.08)";
+    for (let i = 0; i <= gsz; i++) { pxctx.beginPath(); pxctx.moveTo(i * c, 0); pxctx.lineTo(i * c, 320); pxctx.stroke(); pxctx.beginPath(); pxctx.moveTo(0, i * c); pxctx.lineTo(320, i * c); pxctx.stroke(); }
+  }
+  function drawStrip() {
+    const st = document.getElementById("fstrip"); st.innerHTML = "";
+    frames.forEach((g, i) => {
+      const b = document.createElement("div"); b.className = "fbox" + (i === fcur ? " on" : ""); b.onclick = () => { fcur = i; drawPx(); drawStrip(); };
+      const cv = document.createElement("canvas"); cv.width = gsz; cv.height = gsz; const cx = cv.getContext("2d");
+      g.forEach((r, y) => r.forEach((v, x) => { if (v) { cx.fillStyle = v; cx.fillRect(x, y, 1, 1); } }));
+      b.appendChild(cv); st.appendChild(b);
+    });
+  }
+  function savePx() {
+    const imgs = frames.map(g => { const cv = document.createElement("canvas"); cv.width = gsz; cv.height = gsz; const cx = cv.getContext("2d"); g.forEach((r, y) => r.forEach((v, x) => { if (v) { cx.fillStyle = v; cx.fillRect(x, y, 1, 1); } })); const im = new Image(); im.src = cv.toDataURL(); return im; });
+    const a = { id: Date.now(), name: document.getElementById("aname").value || "Sprite", cat: document.getElementById("pxcat").value, frames: imgs, fps: Math.max(1, Number(document.getElementById("afps").value) || 6), src: imgs[0].src };
+    assets.push(a); applyAsset(a.id); refreshPxAssetSelect(); closePx(); drawDrawer();
+  }
+
+  /* Viewport, Camera & Scene Hierarchy */
+  const vp = document.getElementById("vp"), vctx = vp.getContext("2d");
+  function resVp() { const w = document.getElementById("vwrap"); vp.width = w.clientWidth || 700; vp.height = w.clientHeight || 400; }
+  window.onresize = resVp;
+  window.addEventListener("keydown", e => {
+    if (document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+      const k = e.key.toLowerCase();
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && k === "d" && !play) { e.preventDefault(); duplicateSelected(); return; }
+      if (e.key === "Delete" && sel && !play) { delNode(sel); return; }
+      keys[k] = true;
+      if (e.key === " ") keys["space"] = true;
+    }
+  });
+  window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+    if (e.key === " ") keys["space"] = false;
+  });
+
+  function addNode(t) {
+    if (play) return;
+    const id = Date.now();
+    const isOneWay = t === "OneWay";
+    const isPlat = t === "Platform" || isOneWay;
+    const isEnemy = t === "Enemy";
+    const isPlayer = t === "Player";
+    // Auto-enable gravity on new Enemies if the scene already has a gravity-enabled Player or Platformer setup
+    const sceneUsesGrav = nodes.some(n => n.grav) || nodes.some(n => n.tag === "Platform" || n.tag === "OneWay");
+    nodes.push({
+      id,
+      name: t + "_" + (nodes.length + 1),
+      tag: t,
+      x: 180,
+      y: 140,
+      w: isPlat ? 140 : (t === "Coin" ? 22 : 34),
+      h: isOneWay ? 16 : (t === "Platform" ? 32 : (t === "Coin" ? 22 : 34)),
+      color: isPlayer ? "#3b82f6" : isEnemy ? "#ef4444" : t === "Coin" ? "#f59e0b" : isOneWay ? "#38bdf8" : t === "Spike" ? "#f43f5e" : isPlat ? "#10b981" : "#475569",
+      aid: null,
+      grav: isPlayer || (isEnemy && sceneUsesGrav),
+      solid: t !== "Coin" && t !== "Text" && t !== "Spike",
+      flipX: false,
+      vx: 0, vy: 0, grounded: false,
+      text: t === "Text" ? "Score: 0" : "",
+      script: isEnemy ? topDownEnemyLua : (isPlayer ? defaultPlayerLua : "")
+    });
+    sel = id; drawTree(); drawInsp(); saveStorage();
+  }
+
+  function duplicateSelected() {
+    if (play || !sel) return;
+    const orig = nodes.find(x => x.id === sel);
+    if (!orig) return;
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id = Date.now() + Math.random();
+    copy.name = orig.name + "_Copy";
+    copy.x += 24;
+    nodes.push(copy);
+    sel = copy.id;
+    drawTree(); drawInsp(); saveStorage();
+  }
+
+  function delNode(id) { if (play) return; scenes[curScene] = nodes = nodes.filter(n => n.id !== id); sel = nodes[0] ? nodes[0].id : null; drawTree(); drawInsp(); saveStorage(); }
+
+  function upd(k, v) {
+    const n = nodes.find(x => x.id === sel);
+    if (!n) return;
+    n[k] = v;
+    if (k === "grav") {
+      n.vy = 0;
+      n.grounded = false;
+      drawInsp();
+    }
+    drawTree();
+    if (!play) saveStorage();
+  }
+
+  function getWorldPointer(e) {
+    const r = vp.getBoundingClientRect();
+    return { x: e.clientX - r.left - cam.x, y: e.clientY - r.top - cam.y };
+  }
+
+  vp.oncontextmenu = e => e.preventDefault();
+  vp.onmousedown = e => {
+    vp.focus();
+    const pt = getWorldPointer(e);
+    mouse.x = pt.x; mouse.y = pt.y;
+    if (e.button === 0) mouse.down = true;
+    if (e.button === 2) { panDrag = true; off = { x: e.clientX - cam.x, y: e.clientY - cam.y }; return; }
+    if (play) return;
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const n = nodes[i];
+      if (pt.x >= n.x && pt.x <= n.x + n.w && pt.y >= n.y && pt.y <= n.y + n.h) {
+        sel = n.id; drag = n; off = { x: pt.x - n.x, y: pt.y - n.y }; drawTree(); drawInsp(); return;
+      }
+    }
+    sel = null; drawTree(); drawInsp();
+  };
+  vp.onmousemove = e => {
+    const pt = getWorldPointer(e);
+    const mx = Math.round(pt.x), my = Math.round(pt.y);
+    mouse.x = pt.x; mouse.y = pt.y;
+    document.getElementById("hud").textContent = play
+      ? `PLAYING (2D) • Cursor (${mx}, ${my}) • WASD Move • Space Jump/Dash • Click Shoot`
+      : `2D Grid (${mx}, ${my}) • Left-drag objects • Right-drag pan camera • Ctrl+D Duplicate`;
+    if (panDrag) { cam.x = e.clientX - off.x; cam.y = e.clientY - off.y; return; }
+    if (drag && !play) { drag.x = snap ? Math.round((pt.x - off.x) / 16) * 16 : Math.round(pt.x - off.x); drag.y = snap ? Math.round((pt.y - off.y) / 16) * 16 : Math.round(pt.y - off.y); drawInsp(); }
+  };
+
+  function drawTree() {
+    document.getElementById("node-count").textContent = nodes.length;
+    document.getElementById("tree").innerHTML = nodes.map(n => `
+      <div class="titem ${n.id === sel ? 'sel' : ''}" onclick="sel=${n.id};drawTree();drawInsp()">
+        <span>${n.name}${n.grav ? '<span class="badge grav-badge">GRAV</span>' : ''}${n.script ? '<span class="badge lua-badge">LUA</span>' : ''}</span>
+        <span style="font-size:10px;color:#64748b">${n.tag}</span>
+      </div>`).join("");
+  }
+  function drawInsp() {
+    const n = nodes.find(x => x.id === sel), box = document.getElementById("insp");
+    if (!n) { box.innerHTML = "<p style='color:#64748b;font-size:12px'>Select an object in the scene</p>"; return; }
+    const opts = `<option value="">None (Color)</option>` + assets.map(a => `<option value="${a.id}" ${n.aid === a.id ? 'selected' : ''}>${a.name} (${a.cat})</option>`).join("");
+    box.innerHTML = `
+      <div class="row"><label>Name</label><input type="text" value="${n.name}" oninput="upd('name',this.value)"></div>
+      <div class="row"><label>Tag</label><input type="text" value="${n.tag}" oninput="upd('tag',this.value)"></div>
+      <div class="row"><label>X</label><input type="number" value="${Math.round(n.x)}" oninput="upd('x',+this.value)"></div>
+      <div class="row"><label>Y</label><input type="number" value="${Math.round(n.y)}" oninput="upd('y',+this.value)"></div>
+      <div class="row"><label>Width</label><input type="number" value="${n.w}" oninput="upd('w',Math.max(8,+this.value))"></div>
+      <div class="row"><label>Height</label><input type="number" value="${n.h}" oninput="upd('h',Math.max(8,+this.value))"></div>
+      <div class="row"><label>Sprite/Tile</label><select onchange="upd('aid',this.value?+this.value:null)">${opts}</select></div>
+      <div class="row"><label>Flip Horizontal</label><input type="checkbox" ${n.flipX ? 'checked' : ''} onchange="upd('flipX',this.checked)" style="width:16px"></div>
+      <div class="row"><label>Color</label><input type="color" value="${n.color}" oninput="upd('color',this.value)" style="padding:0;height:26px"></div>
+      <div class="row"><label style="color:#6ee7b7;font-weight:600">Gravity</label><input type="checkbox" ${n.grav ? 'checked' : ''} onchange="upd('grav',this.checked)" style="width:16px"></div>
+      <div class="row"><label>Solid Collider</label><input type="checkbox" ${n.solid ? 'checked' : ''} onchange="upd('solid',this.checked)" style="width:16px"></div>
+      ${n.tag === "Text" ? `<div class="row"><label>HUD Text</label><input type="text" value="${n.text}" oninput="upd('text',this.value)"></div>` : ""}
+      <div class="sec">
+        <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:8px;text-transform:uppercase">Lua Behavior Script</div>
+        ${n.script
+          ? `<div style="display:flex;gap:6px"><button class="btn blue" style="flex:1" onclick="openScript()">✎ Edit ${n.name}.lua</button><button class="btn red" onclick="upd('script','');drawTree();drawInsp()">✕</button></div>`
+          : `<button class="btn" style="width:100%" onclick="openScript()">+ Attach Lua Script</button>`
+        }
+      </div>
+      <button class="btn red" style="width:100%;margin-top:12px" onclick="delNode(${n.id})">Delete Object</button>`;
+  }
+
+  function setDTab(t, el) { dTab = t; document.querySelectorAll(".dtab").forEach(x => x.classList.remove("on")); el.classList.add("on"); drawDrawer(); }
+  function drawDrawer() {
+    const b = document.getElementById("dbody");
+    if (dTab === "assets") {
+      if (!assets.length) { b.innerHTML = "<span style='font-size:12px;color:#64748b'>Import an image or a .ZIP pack of sprites/tilesets (or draw in Pixel & Animator), then click an asset to apply it to your selected object.</span>"; return; }
+      b.innerHTML = `<div class="agrid">${assets.map(a => `
+        <div class="acard" onclick="applyAsset(${a.id})">
+          <button class="adel" title="Delete ${a.name}" onclick="deleteAsset(${a.id}, event)">✕</button>
+          <img src="${a.src}">
+          <div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}</div>
+          <div style="font-size:9px;color:#60a5fa">${a.cat} (${a.frames.length}f)</div>
+        </div>`).join("")}</div>`;
+    } else if (dTab === "world") {
+      b.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+          <div><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">World Gravity (px/s²)</div><input type="number" step="50" value="${worldCfg.gravity}" oninput="worldCfg.gravity=+this.value;saveStorage()" style="width:100%"></div>
+          <div><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Sky Top Color</div><input type="color" value="${worldCfg.skyTop}" oninput="worldCfg.skyTop=this.value;saveStorage()" style="width:100%;height:30px;padding:0"></div>
+          <div><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Sky Bottom Color</div><input type="color" value="${worldCfg.skyBot}" oninput="worldCfg.skyBot=this.value;saveStorage()" style="width:100%;height:30px;padding:0"></div>
+          <div><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Editor Grid Overlay</div><input type="checkbox" ${worldCfg.showGrid ? 'checked' : ''} onchange="worldCfg.showGrid=this.checked;saveStorage()" style="width:18px;height:18px;margin-top:4px"></div>
+        </div>`;
+    } else if (dTab === "console") {
+      b.innerHTML = `<div style="font-family:monospace;font-size:12px;color:#94a3b8;line-height:1.55">${logs.map(l => `<div>&gt; ${l}</div>`).join("")}</div>`;
+    } else {
+      b.innerHTML = `<div style="font-family:monospace;font-size:11.5px;color:#93c5fd;line-height:1.55">
+        <strong>Pro 2D Physics &amp; Tags:</strong> Check <b>Gravity</b> on any Player or Enemy to enable realistic falling &amp; landing. Tag platforms as <b>OneWay</b> to jump up through them from below!<br>
+        <strong>Juice &amp; FX API:</strong> <code>engine.particles(x, y, "#fde047", 12)</code> • <code>engine.shake(6, 0.15)</code> • <code>obj.flipX = true</code><br>
+        <strong>Core API:</strong> <code>input.is_down("space" / "mouse1")</code> • <code>engine.find("Tag")</code> • <code>engine.collides(obj, "Tag")</code> • <code>engine.spawn(...)</code>
+      </div>`;
+    }
+  }
+
+  /* Sliding AABB & One-Way Platform Overlap Helpers */
+  const EPS = 0.01;
+  function overlaps(a, b) {
+    return a.x + EPS < b.x + b.w &&
+           a.x + a.w - EPS > b.x &&
+           a.y + EPS < b.y + b.h &&
+           a.y + a.h - EPS > b.y;
+  }
+
+  /* Build & Download Standalone Playable 2D HTML Game */
+  function exportStandaloneGame() {
+    const serializedAssets = assets.map(a => ({ id: a.id, name: a.name, cat: a.cat, fps: a.fps, src: a.src, frameSrcs: a.frames.map(im => im.src) }));
+    const gameData = JSON.stringify({ scenes, startScene: curScene, world: worldCfg, assets: serializedAssets });
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>HybridEngine 2D Game</title><script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"><\/script><style>body{margin:0;background:#080a0e;display:grid;place-items:center;height:100vh;overflow:hidden}canvas{background:#0b0f17;border:1px solid #1e2636}</style></head><body><canvas id="g" width="840" height="520"></canvas><script>
+    const DATA=${gameData}; let cur=DATA.startScene, nodes=DATA.scenes[cur], worldCfg=DATA.world||{gravity:1150,skyTop:"#090d16",skyBot:"#111927"}, keys={}, mouse={x:0,y:0,down:false}, runners={}, currentDt=0.016, particles=[], shakeTime=0, shakeMag=0, cam={x:0,y:0};
+    const assets=(DATA.assets||[]).map(ra=>({id:ra.id,cat:ra.cat,fps:ra.fps||6,frames:(ra.frameSrcs||[ra.src]).map(s=>{const im=new Image();im.src=s;return im;})}));
+    const c=document.getElementById("g"), ctx=c.getContext("2d");
+    const EPS=0.01;
+    function overlaps(a,b){return a.x+EPS<b.x+b.w&&a.x+a.w-EPS>b.x&&a.y+EPS<b.y+b.h&&a.y+a.h-EPS>b.y;}
+    function spawnParticles(x,y,color="#fde047",count=10){for(let i=0;i<count;i++){const ang=Math.random()*Math.PI*2,spd=60+Math.random()*220;particles.push({x,y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-40,size:3+Math.random()*4,color,life:0.25+Math.random()*0.25,maxLife:0.5});}}
+    function triggerShake(mag=6,dur=0.16){shakeMag=Math.max(shakeMag,mag);shakeTime=Math.max(shakeTime,dur);}
+    window.addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(e.key===" ")keys["space"]=true;}); window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;if(e.key===" ")keys["space"]=false;});
+    c.onmousemove=e=>{const r=c.getBoundingClientRect();mouse.x=e.clientX-r.left-cam.x;mouse.y=e.clientY-r.top-cam.y;}; c.onmousedown=()=>mouse.down=true; window.onmouseup=()=>mouse.down=false;
+    const hasRealLua = typeof window.fengari !== 'undefined';
+    ${playTone.toString()} ${formatLuaErr.toString()} let audioCtx=null;
+    const logOut=console.log;
+    function switchScene(s){if(DATA.scenes[s]){cur=s;nodes=DATA.scenes[s];boot();}}
+    if(hasRealLua){
+      const L=window.fengari.L, lua=window.fengari.lua, to_luastring=window.fengari.to_luastring, to_jsstring=window.fengari.to_jsstring;
+      const reg=(n,f)=>{lua.lua_pushcfunction(L,f);lua.lua_setglobal(L,to_luastring(n));};
+      reg("__hyb_dt",L=>{lua.lua_pushnumber(L,currentDt);return 1;});
+      reg("__hyb_key",L=>{const k=to_jsstring(lua.lua_tostring(L,1)).toLowerCase();lua.lua_pushboolean(L,k==="mouse1"?mouse.down:!!keys[k]);return 1;});
+      reg("__hyb_mouse_x",L=>{lua.lua_pushnumber(L,mouse.x);return 1;});
+      reg("__hyb_mouse_y",L=>{lua.lua_pushnumber(L,mouse.y);return 1;});
+      reg("__hyb_print",L=>{console.log(to_jsstring(lua.lua_tostring(L,1)));return 0;});
+      reg("__hyb_sound",L=>{playTone(lua.lua_tonumber(L,1)||440,lua.lua_tonumber(L,2)||0.1);return 0;});
+      reg("__hyb_particles",L=>{spawnParticles(lua.lua_tonumber(L,1)||0,lua.lua_tonumber(L,2)||0,lua.lua_isstring(L,3)?to_jsstring(lua.lua_tostring(L,3)):"#fde047",lua.lua_tonumber(L,4)||10);return 0;});
+      reg("__hyb_shake",L=>{triggerShake(lua.lua_tonumber(L,1)||6,lua.lua_tonumber(L,2)||0.16);return 0;});
+      reg("__hyb_scene",L=>{switchScene(to_jsstring(lua.lua_tostring(L,1)));return 0;});
+      reg("__hyb_find",L=>{const t=to_jsstring(lua.lua_tostring(L,1)),h=nodes.find(o=>o.tag===t||o.name===t);if(h)lua.lua_pushnumber(L,h.id);else lua.lua_pushnil(L);return 1;});
+      reg("__hyb_get_prop",L=>{const n=nodes.find(x=>x.id===lua.lua_tonumber(L,1)),p=to_jsstring(lua.lua_tostring(L,2));if(!n||n[p]===undefined){lua.lua_pushnil(L);return 1;}const v=n[p];if(typeof v==="number")lua.lua_pushnumber(L,v);else if(typeof v==="boolean")lua.lua_pushboolean(L,v);else lua.lua_pushstring(L,to_luastring(String(v)));return 1;});
+      reg("__hyb_set_prop",L=>{const n=nodes.find(x=>x.id===lua.lua_tonumber(L,1)),p=to_jsstring(lua.lua_tostring(L,2));if(!n)return 0;const t=lua.lua_type(L,3);if(t===lua.LUA_TNUMBER)n[p]=lua.lua_tonumber(L,3);else if(t===lua.LUA_TBOOLEAN)n[p]=lua.lua_toboolean(L,3);else if(t===lua.LUA_TSTRING)n[p]=to_jsstring(lua.lua_tostring(L,3));return 0;});
+      reg("__hyb_collides",L=>{const a=nodes.find(x=>x.id===lua.lua_tonumber(L,1)),tag=lua.lua_isstring(L,2)?to_jsstring(lua.lua_tostring(L,2)):null;if(!a){lua.lua_pushnil(L);return 1;}const h=nodes.find(o=>o.id!==a.id&&(!tag||o.tag===tag||o.name===tag)&&a.x<o.x+o.w&&a.x+a.w>o.x&&a.y<o.y+o.h&&a.y+a.h>o.y);if(h)lua.lua_pushnumber(L,h.id);else lua.lua_pushnil(L);return 1;});
+      reg("__hyb_destroy",L=>{const id=lua.lua_tonumber(L,1);if(id)nodes=nodes.filter(n=>n.id!==id);return 0;});
+      reg("__hyb_spawn",L=>{const o={id:Date.now()+Math.random(),name:to_jsstring(lua.lua_tostring(L,1)),tag:to_jsstring(lua.lua_tostring(L,1)),x:lua.lua_tonumber(L,2)||0,y:lua.lua_tonumber(L,3)||0,w:lua.lua_tonumber(L,4)||12,h:lua.lua_tonumber(L,5)||12,color:lua.lua_isstring(L,6)?to_jsstring(lua.lua_tostring(L,6)):"#f59e0b",grav:false,solid:false,flipX:false,vx:lua.lua_tonumber(L,7)||0,vy:lua.lua_tonumber(L,8)||0,life:lua.lua_tonumber(L,9)||0,grounded:false};nodes.push(o);lua.lua_pushnumber(L,o.id);return 1;});
+    }
+    const luaInputAPI={is_down:k=>k==="mouse1"?mouse.down:!!keys[String(k).toLowerCase()],mouse_x:()=>mouse.x,mouse_y:()=>mouse.y}, luaEngineAPI={find:t=>nodes.find(o=>o.tag===t||o.name===t)||null,collides:(a,t)=>nodes.find(o=>o.id!==a.id&&(!t||o.tag===t||o.name===t)&&a.x<o.x+o.w&&a.x+a.w>o.x&&a.y<o.y+o.h&&a.y+a.h>o.y)||null,destroy:t=>{if(t)nodes=nodes.filter(n=>n.id!==t.id);},spawn:(tag,x,y,w=12,h=12,color="#f59e0b",vx=0,vy=0,life=0)=>{const o={id:Math.random(),name:tag,tag,x,y,w,h,color,grav:false,solid:false,flipX:false,vx,vy,life,grounded:false};nodes.push(o);return o;},sound:playTone,particles:spawnParticles,shake:triggerShake,load_scene:switchScene};
+    ${createLuaRunner.toString()}
+    function boot(){runners={};nodes.forEach(n=>{if(n.script){const h=createLuaRunner(n.script,n.name,n.id);runners[n.id]=h;if(h.on_start)h.on_start(n);}});}
+    boot(); let lt=0;
+    function tick(ts){const dt=Math.min(.05,(ts-lt)/1000||.016);lt=ts;
+      nodes.forEach(n=>{if(runners[n.id]&&runners[n.id].on_update)runners[n.id].on_update(n,dt);
+        if(n.life>0){n.life-=dt;if(n.life<=0){nodes=nodes.filter(x=>x.id!==n.id);return;}}
+        if(n.grav){n.vy+=(worldCfg.gravity||1150)*dt;n.grounded=false;}
+        n.x+=(n.vx||0)*dt;if(n.solid)nodes.forEach(o=>{if(o.id!==n.id&&o.solid&&o.tag!=="OneWay"&&overlaps(n,o)){if((n.vx||0)>0)n.x=o.x-n.w;else if((n.vx||0)<0)n.x=o.x+o.w;n.vx=0;}});
+        const prevBottom=n.y+n.h; n.y+=(n.vy||0)*dt;if(n.solid)nodes.forEach(o=>{if(o.id!==n.id&&o.solid&&overlaps(n,o)){if(o.tag==="OneWay"){if((n.vy||0)>0&&prevBottom<=o.y+6){n.y=o.y-n.h;n.vy=0;n.grounded=true;}}else if((n.vy||0)>0){n.y=o.y-n.h;n.vy=0;n.grounded=true;}else if((n.vy||0)<0){n.y=o.y+o.h;n.vy=0;}}});
+        if(n.tag==="Bullet"){const hw=nodes.find(o=>o.id!==n.id&&o.solid&&o.tag!=="OneWay"&&o.tag!=="Player"&&overlaps(n,o));if(hw){spawnParticles(n.x,n.y,"#fde047",6);nodes=nodes.filter(x=>x.id!==n.id);return;}}
+      });
+      particles=particles.filter(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=420*dt;return p.life>0;});
+      const pl=nodes.find(n=>n.tag==="Player"); if(pl){const tx=420-(pl.x+pl.w*0.5),ty=260-(pl.y+pl.h*0.5);cam.x+=(tx-cam.x)*Math.min(1,8*dt);cam.y+=(ty-cam.y)*Math.min(1,8*dt);}
+      let sx=0,sy=0; if(shakeTime>0){shakeTime-=dt;sx=(Math.random()-0.5)*shakeMag*2;sy=(Math.random()-0.5)*shakeMag*2;}
+      const grad=ctx.createLinearGradient(0,0,0,520);grad.addColorStop(0,worldCfg.skyTop);grad.addColorStop(1,worldCfg.skyBot);ctx.fillStyle=grad;ctx.fillRect(0,0,840,520);
+      ctx.save(); ctx.translate(cam.x+sx,cam.y+sy); ctx.imageSmoothingEnabled=false;
+      nodes.forEach(n=>{if(n.tag==="Text")return;const a=assets.find(x=>x.id===n.aid);if(a&&a.frames.length){const im=a.frames[Math.floor((ts/1000)*a.fps)%a.frames.length];ctx.save();if(n.flipX){ctx.translate(n.x+n.w,n.y);ctx.scale(-1,1);ctx.drawImage(im,0,0,n.w,n.h);}else{ctx.drawImage(im,n.x,n.y,n.w,n.h);}ctx.restore();}else{ctx.fillStyle=n.color;ctx.fillRect(n.x,n.y,n.w,n.h);}});
+      particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life/p.maxLife);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}); ctx.globalAlpha=1;
+      ctx.restore();
+      nodes.forEach(n=>{if(n.tag==="Text"){ctx.fillStyle=n.color;ctx.font="bold 16px system-ui";ctx.fillText(n.text||n.name,n.x,n.y+18);}});
+      requestAnimationFrame(tick);
+    } requestAnimationFrame(tick);
+    <\/script></body></html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "HybridEngine_2DGame.html";
+    a.click();
+    logOut("[Build] Exported standalone 2D game: HybridEngine_2DGame.html");
+  }
+
+  /* ==================== MAIN ENGINE SIMULATION & 2D RENDER LOOP ==================== */
+  let lastTs = 0;
+  function loop(ts) {
+    const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016); lastTs = ts;
+
+    if (play) {
+      nodes.forEach(n => {
+        if (luaRunners[n.id] && luaRunners[n.id].on_update) {
+          try {
+            luaRunners[n.id].on_update(n, dt);
+          } catch (e) {
+            if (!errLogged[n.id]) {
+              errLogged[n.id] = true;
+              logOut(`[Lua Runtime Error in ${n.name}.lua] ${formatLuaErr(e)}`);
+            }
+          }
+        }
+        if (n.life > 0) {
+          n.life -= dt;
+          if (n.life <= 0) {
+            scenes[curScene] = nodes = nodes.filter(x => x.id !== n.id);
+            return;
+          }
+        }
+        if (n.grav) {
+          n.vy = (n.vy || 0) + (worldCfg.gravity || 1150) * dt;
+          n.grounded = false;
+        }
+
+        // Independent X-axis movement + smooth sliding wall collision (OneWay ledges don't block horizontally)
+        n.x += (n.vx || 0) * dt;
+        if (n.solid) {
+          nodes.forEach(o => {
+            if (o.id !== n.id && o.solid && o.tag !== "OneWay" && overlaps(n, o)) {
+              if ((n.vx || 0) > 0) n.x = o.x - n.w;
+              else if ((n.vx || 0) < 0) n.x = o.x + o.w;
+              n.vx = 0;
+            }
+          });
+        }
+
+        // Independent Y-axis movement + OneWay ledge & solid floor/ceiling collision
+        const prevBottom = n.y + n.h;
+        n.y += (n.vy || 0) * dt;
+        if (n.solid) {
+          nodes.forEach(o => {
+            if (o.id !== n.id && o.solid && overlaps(n, o)) {
+              if (o.tag === "OneWay") {
+                if ((n.vy || 0) > 0 && prevBottom <= o.y + 6) {
+                  n.y = o.y - n.h;
+                  n.vy = 0;
+                  n.grounded = true;
+                }
+              } else if ((n.vy || 0) > 0) {
+                n.y = o.y - n.h;
+                n.vy = 0;
+                n.grounded = true;
+              } else if ((n.vy || 0) < 0) {
+                n.y = o.y + o.h;
+                n.vy = 0;
+              }
+            }
+          });
+        }
+
+        // Destroy projectiles when they hit solid walls/platforms
+        if (n.tag === "Bullet") {
+          const hitWall = nodes.find(o => o.id !== n.id && o.solid && o.tag !== "OneWay" && o.tag !== "Player" && overlaps(n, o));
+          if (hitWall) {
+            spawnParticles(n.x, n.y, "#fde047", 6);
+            scenes[curScene] = nodes = nodes.filter(x => x.id !== n.id);
+            return;
+          }
+        }
+      });
+
+      // Update Particles
+      particles = particles.filter(p => {
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 420 * dt;
+        return p.life > 0;
+      });
+
+      // Smooth Camera Follow during Play
+      if (camFollow) {
+        const pl = nodes.find(n => n.tag === "Player");
+        if (pl) {
+          const targetX = vp.width * 0.5 - (pl.x + pl.w * 0.5);
+          const targetY = vp.height * 0.55 - (pl.y + pl.h * 0.5);
+          cam.x += (targetX - cam.x) * Math.min(1, 8 * dt);
+          cam.y += (targetY - cam.y) * Math.min(1, 8 * dt);
+        }
+      }
+    }
+
+    // Sky Backdrop Gradient
+    const grad = vctx.createLinearGradient(0, 0, 0, vp.height);
+    grad.addColorStop(0, worldCfg.skyTop || "#090d16");
+    grad.addColorStop(1, worldCfg.skyBot || "#111927");
+    vctx.fillStyle = grad;
+    vctx.fillRect(0, 0, vp.width, vp.height);
+
+    let sx = 0, sy = 0;
+    if (shakeTime > 0) {
+      shakeTime -= dt;
+      sx = (Math.random() - 0.5) * shakeMag * 2;
+      sy = (Math.random() - 0.5) * shakeMag * 2;
+    }
+
+    vctx.save();
+    vctx.translate(cam.x + sx, cam.y + sy);
+    vctx.imageSmoothingEnabled = false;
+
+    // 2D Grid
+    if (worldCfg.showGrid) {
+      vctx.strokeStyle = "rgba(255,255,255,.045)";
+      const startX = Math.floor(-cam.x / 20) * 20, endX = startX + vp.width + 40;
+      const startY = Math.floor(-cam.y / 20) * 20, endY = startY + vp.height + 40;
+      for (let x = startX; x < endX; x += 20) { vctx.beginPath(); vctx.moveTo(x, startY); vctx.lineTo(x, endY); vctx.stroke(); }
+      for (let y = startY; y < endY; y += 20) { vctx.beginPath(); vctx.moveTo(startX, y); vctx.lineTo(endX, y); vctx.stroke(); }
+    }
+
+    // 2D World Entities, Sprites & Tilesets
+    nodes.forEach(n => {
+      if (n.tag === "Text") return; // Rendered in screen-space HUD layer below
+      const a = assets.find(x => x.id === n.aid);
+      if (a && a.frames.length) {
+        const im = a.frames[Math.floor((ts / 1000) * a.fps) % a.frames.length];
+        if (a.cat === "Tileset") {
+          const tw = im.width || 32, th = im.height || 32;
+          vctx.save();
+          vctx.beginPath();
+          vctx.rect(n.x, n.y, n.w, n.h);
+          vctx.clip();
+          for (let tx = n.x; tx < n.x + n.w; tx += tw) {
+            for (let ty = n.y; ty < n.y + n.h; ty += th) {
+              vctx.drawImage(im, tx, ty, tw, th);
+            }
+          }
+          vctx.restore();
+        } else {
+          vctx.save();
+          if (n.flipX) {
+            vctx.translate(n.x + n.w, n.y);
+            vctx.scale(-1, 1);
+            vctx.drawImage(im, 0, 0, n.w, n.h);
+          } else {
+            vctx.drawImage(im, n.x, n.y, n.w, n.h);
+          }
+          vctx.restore();
+        }
+      } else {
+        vctx.fillStyle = n.color;
+        vctx.fillRect(n.x, n.y, n.w, n.h);
+        if (n.tag === "OneWay") {
+          vctx.fillStyle = "rgba(255,255,255,0.45)";
+          vctx.fillRect(n.x, n.y, n.w, 3);
+        }
+      }
+      if (n.id === sel && !play) {
+        vctx.strokeStyle = "#fff";
+        vctx.lineWidth = 2;
+        vctx.strokeRect(n.x - 2, n.y - 2, n.w + 4, n.h + 4);
+      }
+    });
+
+    // Render Particle Bursts
+    particles.forEach(p => {
+      vctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      vctx.fillStyle = p.color;
+      vctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    vctx.globalAlpha = 1;
+    vctx.restore();
+
+    // Screen-Space HUD Text Layer (stays pinned even when camera follows player!)
+    nodes.forEach(n => {
+      if (n.tag === "Text") {
+        vctx.fillStyle = n.color;
+        vctx.font = "bold 16px system-ui";
+        vctx.fillText(n.text || n.name, n.x, n.y + 18);
+        if (n.id === sel && !play) {
+          vctx.strokeStyle = "#60a5fa";
+          vctx.lineWidth = 1.5;
+          vctx.strokeRect(n.x - 3, n.y - 2, n.w + 6, n.h + 4);
+        }
+      }
+    });
+
+    if (document.getElementById("pxmod").classList.contains("open") && frames.length) {
+      const g = frames[Math.floor((ts / 1000) * (+document.getElementById("afps").value || 6)) % frames.length], p = 112 / gsz;
+      actx.clearRect(0, 0, 112, 112); g.forEach((r, y) => r.forEach((v, x) => { if (v) { actx.fillStyle = v; actx.fillRect(x * p, y * p, p, p); } }));
+    }
+    requestAnimationFrame(loop);
+  }
+
+  drawHub(); initPx(16); requestAnimationFrame(loop);
+</script>
+
+</body></html>
